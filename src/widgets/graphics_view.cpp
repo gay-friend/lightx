@@ -1,10 +1,11 @@
-#include "widget/graphics_view.h"
+#include "widgets/graphics_view.h"
 
 GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
 {
     // 设置框选模式
     setRubberBandSelectionMode(Qt::IntersectsItemBoundingRect);
-    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing | QPainter::LosslessImageRendering);
+    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
+                   QPainter::SmoothPixmapTransform | QPainter::LosslessImageRendering);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -12,21 +13,20 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
 
     // 设置缓冲背景 加速渲染
     setCacheMode(QGraphicsView::CacheBackground);
-    setDragMode(GraphicsView::ScrollHandDrag); // 设置这里可以拖动
-    setMouseTracking(true);                    // 跟踪鼠标位置
-    // setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 隐藏水平条
-    // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 隐藏竖条
+    setDragMode(GraphicsView::ScrollHandDrag);            // 设置这里可以拖动
+    setMouseTracking(true);                               // 跟踪鼠标位置
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 隐藏滚动条
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 隐藏滚动条
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setResizeAnchor(QGraphicsView::AnchorUnderMouse);
 
     // 启用框选功能
     setDragMode(QGraphicsView::RubberBandDrag);
 
-    auto *scene = new QGraphicsScene();
+    auto *scene = new Scene();
     setScene(scene);
     // 添加连续预览线到场景
     scene->addItem(&m_preview_line);
-    scene->setBackgroundBrush(QColor(192, 192, 192));
     m_preview_line.setVisible(false);
 }
 

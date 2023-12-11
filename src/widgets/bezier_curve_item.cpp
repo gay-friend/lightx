@@ -1,4 +1,4 @@
-#include "widget/bezier_curve_item.h"
+#include "widgets/bezier_curve_item.h"
 
 BezierCurveItem::BezierCurveItem(const QPointF &start_point, const QPointF &end_point)
     : m_start(start_point), m_end(end_point)

@@ -1,4 +1,4 @@
-#include "widget/mainwidow.h"
+#include "widgets/mainwidow.h"
 
 int main(int argc, char *argv[])
 {

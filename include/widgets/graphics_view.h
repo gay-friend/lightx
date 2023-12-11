@@ -6,8 +6,9 @@
 #include <iostream>
 
 #include "model/node_manager.h"
-#include "widget/bezier_curve_item.h"
-#include "widget/drag_label.h"
+#include "widgets/bezier_curve_item.h"
+#include "widgets/drag_label.h"
+#include "widgets/scene.h"
 
 /// @brief 画布
 class GraphicsView : public QGraphicsView

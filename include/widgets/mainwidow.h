@@ -7,8 +7,8 @@
 #include <QApplication>
 #include <QToolBar>
 
-#include "widget/graphics_view.h"
-#include "widget/drag_label.h"
+#include "widgets/graphics_view.h"
+#include "widgets/drag_label.h"
 
 class MainWindow : public QMainWindow
 {

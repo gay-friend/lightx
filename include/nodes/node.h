@@ -2,7 +2,7 @@
 
 #include <QPainter>
 #include <opencv2/opencv.hpp>
-#include "widget/bezier_curve_item.h"
+#include "widgets/bezier_curve_item.h"
 #include "nodes/port.h"
 
 #ifndef NODE_API

@@ -1,4 +1,4 @@
-#include "widget/drag_label.h"
+#include "widgets/drag_label.h"
 
 DragLabel::DragLabel(const std::string &text, QWidget *parent)
     : QLabel(QString::fromStdString(text), parent)
