@@ -1,9 +1,7 @@
 # 发现一个目录下所有的源代码文件并将列表存储在一个变量中
 file(GLOB_RECURSE SRCS ${ROOT}/src/*.cpp
                        ${ROOT}/src/*.hpp
-                       ${ROOT}/include/entity/*.h
-                       ${ROOT}/include/widgets/*.h
-                       ${ROOT}/include/utils/*.h
+                       ${ROOT}/include/*.h
                        )
 
 foreach(file ${SRCS})
@@ -12,7 +10,7 @@ endforeach()
 
 
 # find qt
-# list(APPEND CMAKE_PREFIX_PATH ~/Qt/6.5.3/gcc_64)
+list(APPEND CMAKE_PREFIX_PATH ~/Qt/6.5.3/gcc_64)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 

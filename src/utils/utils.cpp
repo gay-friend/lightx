@@ -40,8 +40,7 @@ void LibManager::load()
     {
         return;
     }
-    fs::directory_iterator files(m_dir);
-    for (auto it : files)
+    for (auto it : fs::directory_iterator(m_dir))
     {
         auto file = it.path().c_str();
         void **handle = new (void *);

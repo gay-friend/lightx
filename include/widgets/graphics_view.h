@@ -3,6 +3,7 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QAction>
+#include <QApplication>
 #include <iostream>
 
 #include "model/node_manager.h"
@@ -56,21 +57,15 @@ public:
     /// @brief 上下文菜单事件
     /// @param event 事件源
     void contextMenuEvent(QContextMenuEvent *event) override;
-    /// @brief 缩放视图
-    /// @param scale_factor 缩放因子
-    void scaleView(qreal scale_factor);
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     /// @brief 节点管理器
     NodeManager node_manager{this};
 
 private:
     /// @brief 拖动中？
     bool m_is_drawing = false;
-    /// @brief 右键按下
-    bool m_right_button_pressed = false;
-    /// @brief 左键按下
-    bool m_left_button_pressed = false;
-    /// @brief 移动场景标识
-    bool m_move_view_flag = false;
+    /// @brief 画布拖动
+    bool m_drag_mode = false;
     /// @brief 预览线
     BezierCurveItem m_preview_line{QPointF(0, 0), QPointF(0, 0)};
     /// @brief 预览线颜色
@@ -82,7 +77,7 @@ private:
     /// @brief  鼠标释放位置
     QPoint m_mouse_release_pos;
     /// @brief 缩放
-    double m_scale{1}; // 缩放
-    /// @brief 鼠标滚动标识
-    bool m_scoll_flag = false;
+    float m_zoom_factor{1.05}; // 缩放
+    float m_view_scale{1.0};
+    float m_last_scale{0.0};
 };
