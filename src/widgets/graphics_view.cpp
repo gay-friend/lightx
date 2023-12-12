@@ -59,9 +59,8 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
     if (m_is_drawing)
     {
         m_preview_line.setVisible(true);
-        QPointF start(m_mouse_clike_pos);
-        QPointF end(m_mouse_current_pos);
-        m_preview_line.update_point(start, end);
+
+        m_preview_line.update_point(mapToScene(m_mouse_clike_pos), mapToScene(m_mouse_current_pos));
         m_preview_line.line_color = m_line_color;
     }
 
