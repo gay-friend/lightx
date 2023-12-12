@@ -3,7 +3,6 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QAction>
-#include <QApplication>
 #include <iostream>
 
 #include "model/node_manager.h"
@@ -45,9 +44,6 @@ public:
     /// @brief 大小改变事件
     /// @param event 事件源
     void resizeEvent(QResizeEvent *event) override;
-    /// @brief 视窗改变事件
-    /// @param event 事件源
-    bool viewportEvent(QEvent *event) override;
     /// @brief 按键按松开事件
     /// @param event 事件源
     void keyReleaseEvent(QKeyEvent *event) override;

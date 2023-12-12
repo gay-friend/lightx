@@ -8,15 +8,15 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
 
     // 设置缓冲背景 加速渲染
     // setCacheMode(QGraphicsView::CacheBackground);
-    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    setMouseTracking(true);                               // 跟踪鼠标位置
+    // setMouseTracking(true);                               // 跟踪鼠标位置
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 隐藏滚动条
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 隐藏滚动条
 
     // 启用框选功能
-    setDragMode(QGraphicsView::RubberBandDrag);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setDragMode(QGraphicsView::RubberBandDrag);
     // 支持拖拽
+    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setAcceptDrops(true);
 
     auto *scene = new Scene();
@@ -41,9 +41,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
     {
         return;
     }
-    auto zoom_factor = event->angleDelta().y() > 0 ? m_zoom_factor : 1 / m_zoom_factor;
+    auto zoom_factor = event->angleDelta().y() > 0 ? m_zoom_factor : 1.0 / m_zoom_factor;
     m_view_scale *= zoom_factor;
-    if (m_view_scale < 0.2 || m_view_scale > 2)
+    if (m_view_scale < 0.2 || m_view_scale > 3)
     {
         zoom_factor = 1.0;
         m_view_scale = m_last_scale;
@@ -55,18 +55,12 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
     m_mouse_current_pos = event->pos();
-    if (event->buttons() & Qt::RightButton)
-    {
-        QPointF delta = mapToScene(m_mouse_current_pos) - mapToScene(m_mouse_clike_pos);
-        setSceneRect(sceneRect().translated(-delta));
-        m_mouse_clike_pos = m_mouse_current_pos;
-    }
 
     if (m_is_drawing)
     {
         m_preview_line.setVisible(true);
-        QPointF start(mapToScene(m_mouse_clike_pos));
-        QPointF end(mapToScene(m_mouse_current_pos));
+        QPointF start(m_mouse_clike_pos);
+        QPointF end(m_mouse_current_pos);
         m_preview_line.update_point(start, end);
         m_preview_line.line_color = m_line_color;
     }
@@ -81,34 +75,24 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
     switch (event->button())
     {
     case Qt::LeftButton:
-        if (!info.is_empty())
+        if (!info.is_empty() && !m_drag_mode)
         {
             m_is_drawing = true;
             m_line_color = info.port->color;
         }
+
         break;
     case Qt::RightButton:
-        if (info.is_empty() && event->modifiers() == Qt::ControlModifier)
-        {
-            QApplication::setOverrideCursor(Qt::CrossCursor);
-        }
-        setDragMode(QGraphicsView::NoDrag);
+        // 创建虚拟的左键松开事件
+        QGraphicsView::mouseReleaseEvent(new QMouseEvent(QEvent::MouseButtonRelease, event->position(), mapToGlobal(event->position()),
+                                                         Qt::LeftButton, Qt::NoButton, event->modifiers()));
+
+        setDragMode(QGraphicsView::ScrollHandDrag);
         m_drag_mode = true;
+        // 创建虚拟的左键点击事件
+        QGraphicsView::mousePressEvent(new QMouseEvent(QEvent::MouseButtonRelease, event->position(), mapToGlobal(event->position()),
+                                                       Qt::LeftButton, Qt::NoButton, event->modifiers()));
         break;
-        // case Qt::MiddleButton:
-        //     if (!info.is_empty())
-        //     {
-        //         break;
-        //     }
-        //     // 创建虚拟的左键松开事件
-        //     QGraphicsView::mouseReleaseEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(),
-        //                                                      Qt::LeftButton, Qt::NoButton, event->modifiers()));
-        //     setDragMode(QGraphicsView::ScrollHandDrag);
-        //     m_draw_mode = true;
-        //     // 创建虚拟的左键点击事件
-        //     QGraphicsView::mousePressEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(),
-        //                                                    Qt::LeftButton, Qt::NoButton, event->modifiers()));
-        //     break;
 
     default:
         break;
@@ -157,16 +141,13 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
         }
         break;
     case Qt::RightButton:
-        QApplication::setOverrideCursor(Qt::ArrowCursor);
+        // 创建虚拟的左键松开事件
+        QGraphicsView::mouseReleaseEvent(new QMouseEvent(QEvent::MouseButtonRelease, event->position(), mapToGlobal(event->position()),
+                                                         Qt::LeftButton, Qt::NoButton, event->modifiers()));
         setDragMode(QGraphicsView::RubberBandDrag);
         m_drag_mode = false;
+        // setAcceptDrops(true);
         break;
-        // case Qt::MiddleButton:
-        //     QGraphicsView::mouseReleaseEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(),
-        //                                                      Qt::LeftButton, Qt::NoButton, event->modifiers()));
-        //     setDragMode(QGraphicsView::RubberBandDrag);
-        //     m_draw_mode = false;
-        //     break;
 
     default:
         break;
@@ -187,12 +168,14 @@ void GraphicsView::dragEnterEvent(QDragEnterEvent *event)
 void GraphicsView::dragLeaveEvent(QDragLeaveEvent *event)
 {
     event->accept();
+    QGraphicsView::dragLeaveEvent(event);
 }
 void GraphicsView::resizeEvent(QResizeEvent *event)
 {
+    // QGraphicsView::resizeEvent(event);
+    // auto size = event->size();
+    // setSceneRect(0, 0, size.width(), size.height());
     QGraphicsView::resizeEvent(event);
-    auto size = event->size();
-    setSceneRect(0, 0, size.width(), size.height());
 }
 
 void GraphicsView::dropEvent(QDropEvent *event)
@@ -214,25 +197,23 @@ void GraphicsView::dropEvent(QDropEvent *event)
     }
 }
 
-bool GraphicsView::viewportEvent(QEvent *event)
-{
-    return QGraphicsView::viewportEvent(event);
-}
 void GraphicsView::keyPressEvent(QKeyEvent *event)
 {
     QGraphicsView::keyPressEvent(event);
 }
 void GraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_F5)
+    switch (event->key())
     {
+    case Qt::Key_F5:
         // 执行节点
         node_manager.run();
-    }
-    else if (event->key() == Qt::Key_Delete)
-    {
+        break;
+    case Qt::Key_Delete:
         // 删除选中
         node_manager.delete_selected();
+    default:
+        break;
     }
 }
 

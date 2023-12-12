@@ -33,7 +33,7 @@ public:
     /// @brief 线颜色
     QColor line_color{Qt::blue};
     /// @brief 线宽度
-    uint line_width{8};
+    uint line_width{4};
 
 private:
     /// @brief 起始点

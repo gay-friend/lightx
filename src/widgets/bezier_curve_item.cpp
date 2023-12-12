@@ -10,10 +10,10 @@ BezierCurveItem::BezierCurveItem(const QPointF &start_point, const QPointF &end_
 QRectF BezierCurveItem::boundingRect() const
 {
     // 返回包围贝塞尔曲线的矩形
-    qreal min_x = qMin(qMin(m_start.x(), m_end.x()), qMin(m_control1.x(), m_control2.x()));
-    qreal min_y = qMin(qMin(m_start.y(), m_end.y()), qMin(m_control1.y(), m_control2.y()));
-    qreal max_x = qMax(qMax(m_start.x(), m_end.x()), qMax(m_control1.x(), m_control2.x()));
-    qreal max_y = qMax(qMax(m_start.y(), m_end.y()), qMax(m_control1.y(), m_control2.y()));
+    auto min_x = qMin(qMin(m_start.x(), m_end.x()), qMin(m_control1.x(), m_control2.x()));
+    auto min_y = qMin(qMin(m_start.y(), m_end.y()), qMin(m_control1.y(), m_control2.y()));
+    auto max_x = qMax(qMax(m_start.x(), m_end.x()), qMax(m_control1.x(), m_control2.x()));
+    auto max_y = qMax(qMax(m_start.y(), m_end.y()), qMax(m_control1.y(), m_control2.y()));
     return QRectF(min_x, min_y, max_x - min_x, max_y - min_y);
 }
 
@@ -38,14 +38,8 @@ void BezierCurveItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
         m_control2 = QPointF(m_end.x() - 60, m_end.y());
     }
 
-    if (isSelected())
-    {
-        line_width = 15;
-    }
-    else
-    {
-        line_width = 8;
-    }
+    // 线宽
+    line_width = isSelected() ? 8 : 4;
 
     // 贝塞尔曲线
     QPainterPath bezier_path;
@@ -59,6 +53,7 @@ void BezierCurveItem::update_point(const QPointF &start_point, const QPointF &en
 {
     m_start = start_point;
     m_end = end_point;
+    prepareGeometryChange();
     update();
 }
 
@@ -77,7 +72,6 @@ void BezierCurveItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
         setSelected(true);
     }
-
     else
     {
         setSelected(false);
