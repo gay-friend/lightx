@@ -9,6 +9,7 @@
 #include "widgets/bezier_curve_item.h"
 #include "widgets/drag_label.h"
 #include "widgets/scene.h"
+#include "widgets/tree_widget.h"
 
 /// @brief 画布
 class GraphicsView : public QGraphicsView

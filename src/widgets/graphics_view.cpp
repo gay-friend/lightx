@@ -179,20 +179,20 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
 
 void GraphicsView::dropEvent(QDropEvent *event)
 {
-    auto label = dynamic_cast<DragLabel *>(event->source());
-    auto name = label->text();
+    auto widget = dynamic_cast<NodeListWidget *>(event->source());
+    auto data = widget->dragged_item->data(0, Qt::UserRole).value<QList<QString>>();
 
     QPointF pos(mapToScene(event->position().toPoint()));
 
-    auto node = node_manager.lib_manager->create_node(name.toStdString(), pos);
+    auto node = node_manager.lib_manager->create_node(data[0].toStdString(), data[1].toStdString(), pos);
     if (node != nullptr)
     {
         node_manager.add_node(node);
-        std::cout << name.toStdString() << " Add" << std::endl;
+        std::cout << data[1].toStdString() << " Add" << std::endl;
     }
     else
     {
-        std::cout << name.toStdString() << " not support!" << std::endl;
+        std::cout << data[1].toStdString() << " not support!" << std::endl;
     }
 }
 

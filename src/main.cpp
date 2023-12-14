@@ -1,8 +1,8 @@
-#include "widgets/mainwidow.h"
+#include "widgets/editor.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    (new MainWindow())->show();
+    (new EditorWindow())->show();
     return app.exec();
 }

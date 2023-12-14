@@ -51,22 +51,22 @@ void LibManager::load()
         std::cout << "Load " << file << " successed. name as: " << info->name << std::endl;
 
         m_handle_map[info->name] = handle;
-        m_func_map[info->name] = func;
+        func_map[get_node_type_name(info->type)][info->name] = func;
     }
 }
 void LibManager::unload()
 {
-    m_func_map.clear();
+    func_map.clear();
     m_handle_map.clear();
     names.clear();
 }
-Node *LibManager::create_node(const std::string &node_name, QPointF pos)
+Node *LibManager::create_node(const std::string &node_type, const std::string &node_name, QPointF pos)
 {
-    if (m_func_map.count(node_name) == 0)
+    if (func_map.count(node_type) == 0 || func_map[node_type].count(node_name) == 0)
     {
         return nullptr;
     }
-    auto func = m_func_map[node_name];
+    auto func = func_map[node_type][node_name];
     if (func == nullptr)
     {
         return nullptr;

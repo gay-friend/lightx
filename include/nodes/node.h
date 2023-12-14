@@ -138,6 +138,8 @@ signals:
     void change(); // 节点改变信号
 };
 
+std::string get_node_type_name(Node::Type type);
+
 /// @brief 节点信息
 typedef struct NodeInfo
 {

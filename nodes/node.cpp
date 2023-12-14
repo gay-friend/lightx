@@ -250,3 +250,16 @@ bool Node::is_start_node()
     return std::all_of(in_ports.begin(), in_ports.end(), [](Port *port)
                        { return !port->is_connected; });
 }
+
+std::string get_node_type_name(Node::Type type)
+{
+    switch (type)
+    {
+    case Node::CameraNode:
+        return "Camera";
+        break;
+    
+    default:
+        break;
+    }
+}

@@ -14,8 +14,8 @@ public:
     void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 private:
-    int m_scene_width{32000};
-    int m_scene_height{32000};
+    int m_scene_width{5000};
+    int m_scene_height{5000};
     int m_scene_grid_size{20};
     int m_scene_grid_chunk{10};
     QPen m_norm_line_pen;
