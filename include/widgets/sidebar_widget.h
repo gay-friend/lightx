@@ -16,9 +16,6 @@ public:
     bool collapsed;
     int default_stretch;
 
-signals:
-    void collapse_changed(bool collapsed);
-
 private:
     QWidget *m_title_widget;
     QWidget *m_content_widget;
@@ -42,9 +39,6 @@ private:
     QWidget *m_widget;
     QSpacerItem *m_spacer;
     std::vector<ToolBoxComponentWidget *> m_components;
-
-public slots:
-    void on_comp_collapsed();
 };
 
 class SidebarWidget : public QWidget

@@ -11,11 +11,8 @@ SidebarWidget::SidebarWidget(QWidget *parent, const std::string &title, bool is_
     title_layout->setContentsMargins(20, 0, 20, 0);
 
     auto title_label = new QLabel(QString::fromStdString(title));
-    auto menu_button = new QPushButton("...");
 
     title_layout->addWidget(title_label);
-    title_layout->addStretch(1);
-    title_layout->addWidget(menu_button);
 
     m_content_widget = new ToolBoxWidget(this, is_stretch);
 
@@ -60,41 +57,14 @@ ToolBoxWidget::ToolBoxWidget(QWidget *parent, bool is_stretch) : QWidget(parent)
     setObjectName("ToolBox");
 }
 
-void ToolBoxWidget::on_comp_collapsed()
-{
-    auto all_collapsed = true;
-    for (auto comp : m_components)
-    {
-        if (comp->collapsed)
-        {
-            m_container_layout->setStretchFactor(comp, 0);
-        }
-        else
-        {
-            m_container_layout->setStretchFactor(comp, comp->default_stretch);
-            all_collapsed = false;
-        }
-    }
-    if (all_collapsed)
-    {
-        m_container_layout->addItem(m_spacer);
-    }
-    else
-    {
-        m_container_layout->removeItem(m_spacer);
-    }
-}
-
 ToolBoxComponentWidget *ToolBoxWidget::add_component(const std::string &title, NodeListWidget *widget, bool collapsed, int stretch)
 {
     auto component = new ToolBoxComponentWidget(this, collapsed, stretch);
     component->setup_widget(title, widget);
     m_container_layout->addWidget(component);
 
-    connect(component, SIGNAL(component->collapse_changed()), this, SLOT(on_comp_collapsed()));
     m_components.push_back(component);
 
-    on_comp_collapsed();
     return component;
 }
 
@@ -111,7 +81,7 @@ void ToolBoxComponentWidget::setup_widget(const std::string &title, QWidget *con
     m_title_widget = new QPushButton(this);
     m_title_widget->setObjectName("ToolCompTitle");
     auto title_layout = new QHBoxLayout(m_title_widget);
-    title_layout->setContentsMargins(10, 0, 0, 0);
+    title_layout->setContentsMargins(10, 0, 10, 0);
 
     auto icon_label = new QLabel(m_title_widget);
     icon_label->setFixedSize(12, 12);

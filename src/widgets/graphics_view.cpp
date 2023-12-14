@@ -145,7 +145,6 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
                                                          Qt::LeftButton, Qt::NoButton, event->modifiers()));
         setDragMode(QGraphicsView::RubberBandDrag);
         m_drag_mode = false;
-        // setAcceptDrops(true);
         break;
 
     default:
@@ -175,7 +174,13 @@ void GraphicsView::dropEvent(QDropEvent *event)
     try
     {
         auto widget = dynamic_cast<NodeListWidget *>(event->source());
-        auto data = widget->dragged_item->data(0, Qt::UserRole).value<QList<QString>>();
+        auto item = widget->dragged_item;
+        if (item == nullptr)
+        {
+            std::cerr << "empty drop item" << std::endl;
+            return;
+        }
+        auto data = item->data(0, Qt::UserRole).value<QList<QString>>();
         QPointF pos(mapToScene(event->position().toPoint()));
 
         auto node = node_manager.lib_manager->create_node(data[0].toStdString(), data[1].toStdString(), pos);
