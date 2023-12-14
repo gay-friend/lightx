@@ -4,7 +4,6 @@ NodeListWidget::NodeListWidget(QWidget *parent, bool drag_enabled)
 {
     setColumnCount(1);
     setHeaderHidden(true);
-    setObjectName("MenuTree");
 
     if (drag_enabled)
     {
@@ -13,9 +12,11 @@ NodeListWidget::NodeListWidget(QWidget *parent, bool drag_enabled)
         setDragDropMode(QTreeWidget::DragDrop);
         setDropIndicatorShown(true);
 
+        // 根节点不接受拖动
         auto root_item = invisibleRootItem();
-        root_item->setFlags(root_item->flags() ^ Qt::ItemIsDragEnabled);
+        root_item->setFlags(root_item->flags() ^ Qt::ItemIsDropEnabled);
     }
+    setObjectName("MenuTree");
 }
 
 void NodeListWidget::startDrag(Qt::DropActions supportedActions)
@@ -50,4 +51,5 @@ void NodeListWidget::build_tree(std::map<std::string, std::map<std::string, func
     }
 
     insertTopLevelItems(0, items);
+    expandAll();
 }

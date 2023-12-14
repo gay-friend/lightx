@@ -158,41 +158,41 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 }
 void GraphicsView::dragMoveEvent(QDragMoveEvent *event)
 {
-    event->accept();
-}
-void GraphicsView::dragEnterEvent(QDragEnterEvent *event)
-{
-    event->accept();
-}
-void GraphicsView::dragLeaveEvent(QDragLeaveEvent *event)
-{
-    event->accept();
-    QGraphicsView::dragLeaveEvent(event);
-}
-void GraphicsView::resizeEvent(QResizeEvent *event)
-{
-    // QGraphicsView::resizeEvent(event);
-    // auto size = event->size();
-    // setSceneRect(0, 0, size.width(), size.height());
-    QGraphicsView::resizeEvent(event);
+    try
+    {
+        dynamic_cast<NodeListWidget *>(event->source());
+        event->acceptProposedAction();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+        QGraphicsView::dragMoveEvent(event);
+    }
 }
 
 void GraphicsView::dropEvent(QDropEvent *event)
 {
-    auto widget = dynamic_cast<NodeListWidget *>(event->source());
-    auto data = widget->dragged_item->data(0, Qt::UserRole).value<QList<QString>>();
-
-    QPointF pos(mapToScene(event->position().toPoint()));
-
-    auto node = node_manager.lib_manager->create_node(data[0].toStdString(), data[1].toStdString(), pos);
-    if (node != nullptr)
+    try
     {
-        node_manager.add_node(node);
-        std::cout << data[1].toStdString() << " Add" << std::endl;
+        auto widget = dynamic_cast<NodeListWidget *>(event->source());
+        auto data = widget->dragged_item->data(0, Qt::UserRole).value<QList<QString>>();
+        QPointF pos(mapToScene(event->position().toPoint()));
+
+        auto node = node_manager.lib_manager->create_node(data[0].toStdString(), data[1].toStdString(), pos);
+        if (node != nullptr)
+        {
+            node_manager.add_node(node);
+            std::cout << data[1].toStdString() << " Add" << std::endl;
+        }
+        else
+        {
+            std::cout << data[1].toStdString() << " not support!" << std::endl;
+        }
     }
-    else
+    catch (const std::exception &e)
     {
-        std::cout << data[1].toStdString() << " not support!" << std::endl;
+        std::cerr << e.what() << '\n';
+        QGraphicsView::dropEvent(event);
     }
 }
 

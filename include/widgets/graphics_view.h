@@ -7,7 +7,6 @@
 
 #include "model/node_manager.h"
 #include "widgets/bezier_curve_item.h"
-#include "widgets/drag_label.h"
 #include "widgets/scene.h"
 #include "widgets/tree_widget.h"
 
@@ -33,18 +32,9 @@ public:
     /// @brief 拖动移动事件
     /// @param event 事件源
     void dragMoveEvent(QDragMoveEvent *event) override;
-    /// @brief 拖动进入事件
-    /// @param event 事件源
-    void dragEnterEvent(QDragEnterEvent *event) override;
     /// @brief 拖动释放事件
     /// @param event 事件源
     void dropEvent(QDropEvent *event) override;
-    /// @brief 拖动离开事件
-    /// @param event 事件源
-    void dragLeaveEvent(QDragLeaveEvent *event) override;
-    /// @brief 大小改变事件
-    /// @param event 事件源
-    void resizeEvent(QResizeEvent *event) override;
     /// @brief 按键按松开事件
     /// @param event 事件源
     void keyReleaseEvent(QKeyEvent *event) override;

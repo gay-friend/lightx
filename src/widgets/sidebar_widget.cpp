@@ -33,6 +33,14 @@ void SidebarWidget::add_comp(const std::string &comp_name, NodeListWidget *widge
 
 ToolBoxWidget::ToolBoxWidget(QWidget *parent, bool is_stretch) : QWidget(parent), is_stretch(is_stretch)
 {
+    m_scroll_area = new QScrollArea(this);
+    m_out_layout = new QVBoxLayout(this);
+    m_out_layout->addWidget(m_scroll_area);
+    m_out_layout->setContentsMargins(0, 0, 0, 0);
+
+    m_widget = new QWidget(this);
+    m_v_layout = new QVBoxLayout(m_widget);
+    m_v_layout->setContentsMargins(0, 0, 0, 0);
 
     m_container = new QWidget(this);
     m_container_layout = new QVBoxLayout(m_container);
@@ -40,17 +48,9 @@ ToolBoxWidget::ToolBoxWidget(QWidget *parent, bool is_stretch) : QWidget(parent)
     m_container_layout->setSpacing(0);
     m_container->setObjectName("container");
 
-    m_spacer = new QSpacerItem(width(), height(), QSizePolicy::Maximum, QSizePolicy::Expanding);
-
-    m_widget = new QWidget(this);
-    m_v_layout = new QVBoxLayout(m_widget);
-    m_v_layout->setContentsMargins(0, 0, 0, 0);
     m_v_layout->addWidget(m_container);
 
-    m_scroll_area = new QScrollArea(this);
-    m_out_layout = new QVBoxLayout(this);
-    m_out_layout->addWidget(m_scroll_area);
-    m_out_layout->setContentsMargins(0, 0, 0, 0);
+    m_spacer = new QSpacerItem(width(), height(), QSizePolicy::Maximum, QSizePolicy::Expanding);
 
     m_scroll_area->setWidget(m_widget);
     // 这句话非常重要 要不然会不显示
@@ -60,18 +60,46 @@ ToolBoxWidget::ToolBoxWidget(QWidget *parent, bool is_stretch) : QWidget(parent)
     setObjectName("ToolBox");
 }
 
+void ToolBoxWidget::on_comp_collapsed()
+{
+    auto all_collapsed = true;
+    for (auto comp : m_components)
+    {
+        if (comp->collapsed)
+        {
+            m_container_layout->setStretchFactor(comp, 0);
+        }
+        else
+        {
+            m_container_layout->setStretchFactor(comp, comp->default_stretch);
+            all_collapsed = false;
+        }
+    }
+    if (all_collapsed)
+    {
+        m_container_layout->addItem(m_spacer);
+    }
+    else
+    {
+        m_container_layout->removeItem(m_spacer);
+    }
+}
+
 ToolBoxComponentWidget *ToolBoxWidget::add_component(const std::string &title, NodeListWidget *widget, bool collapsed, int stretch)
 {
     auto component = new ToolBoxComponentWidget(this, collapsed, stretch);
     component->setup_widget(title, widget);
     m_container_layout->addWidget(component);
 
+    connect(component, SIGNAL(component->collapse_changed()), this, SLOT(on_comp_collapsed()));
     m_components.push_back(component);
+
+    on_comp_collapsed();
     return component;
 }
 
 ToolBoxComponentWidget::ToolBoxComponentWidget(QWidget *parent, bool collapsed, int default_stretch)
-    : QWidget(parent), m_collapsed(collapsed), m_default_stretch(default_stretch)
+    : QWidget(parent), collapsed(collapsed), default_stretch(default_stretch)
 {
 }
 
@@ -98,7 +126,7 @@ void ToolBoxComponentWidget::setup_widget(const std::string &title, QWidget *con
     v_layout->addWidget(m_content_widget);
     v_layout->addSpacing(0);
 
-    if (m_collapsed)
+    if (collapsed)
     {
         m_content_widget->hide();
     }

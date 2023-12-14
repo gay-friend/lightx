@@ -9,7 +9,6 @@
 #include <QSplitter>
 
 #include "widgets/graphics_view.h"
-#include "widgets/drag_label.h"
 #include "widgets/sidebar_widget.h"
 #include "widgets/tree_widget.h"
 

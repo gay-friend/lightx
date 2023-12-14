@@ -13,11 +13,15 @@ public:
     ToolBoxComponentWidget(QWidget *parent = nullptr, bool collapsed = true, int default_stretch = 10);
     void setup_widget(const std::string &title, QWidget *content);
 
+    bool collapsed;
+    int default_stretch;
+
+signals:
+    void collapse_changed(bool collapsed);
+
 private:
     QWidget *m_title_widget;
     QWidget *m_content_widget;
-    int m_default_stretch;
-    bool m_collapsed;
 };
 
 class ToolBoxWidget : public QWidget
@@ -38,6 +42,9 @@ private:
     QWidget *m_widget;
     QSpacerItem *m_spacer;
     std::vector<ToolBoxComponentWidget *> m_components;
+
+public slots:
+    void on_comp_collapsed();
 };
 
 class SidebarWidget : public QWidget

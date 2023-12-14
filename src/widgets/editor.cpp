@@ -41,43 +41,18 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     // 剪贴板
     m_clipboard = QApplication::clipboard();
 
-    // m_left_dock = new QDockWidget("", this);
-    // m_right_dock = new QDockWidget("信息", this);
+    // 设置工具栏
+    m_tool_bar = new QToolBar(this);
+    this->addToolBar(m_tool_bar);
 
-    // // 禁用关闭按钮
-    // m_left_dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    // m_left_dock->setMinimumWidth(150);
-    // m_right_dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    // 把动作添加到工具栏，QAction就会自动变成工具
+    auto run_action = new QAction("Run");
+    connect(run_action, SIGNAL(triggered()), this, SLOT(on_action_run()));
 
-    // m_editor = new GraphicsView(this);
-    // setCentralWidget(m_editor);
-
-    // addDockWidget(Qt::LeftDockWidgetArea, m_left_dock);
-    // addDockWidget(Qt::RightDockWidgetArea, m_right_dock);
-
-    // auto widget = new QWidget();
-    // auto layout = new QVBoxLayout();
-    // for (auto it : m_editor->node_manager.get_all_node_names())
-    // {
-    //     layout->addWidget(new DragLabel(it));
-    // }
-
-    // layout->addStretch();
-    // widget->setLayout(layout);
-    // m_left_dock->setWidget(widget);
-
-    // // 设置工具栏
-    // m_tool_bar = new QToolBar(this);
-    // this->addToolBar(m_tool_bar);
-
-    // // 把动作添加到工具栏，QAction就会自动变成工具
-    // auto run_action = new QAction("Run");
-    // connect(run_action, SIGNAL(triggered()), this, SLOT(on_action_run()));
-
-    // m_tool_bar->addAction(run_action);
+    m_tool_bar->addAction(run_action);
 }
 
 void EditorWindow::on_action_run()
 {
-    // m_editor->node_manager.run();
+    m_editor->node_manager.run();
 }
