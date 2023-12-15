@@ -21,7 +21,7 @@ NodeListWidget::NodeListWidget(QWidget *parent, bool drag_enabled)
 
 void NodeListWidget::startDrag(Qt::DropActions supportedActions)
 {
-    dragged_item = itemAt(mapFromGlobal(QCursor::pos()));
+    dragged_item = currentItem();
     QTreeWidget::startDrag(supportedActions);
 }
 

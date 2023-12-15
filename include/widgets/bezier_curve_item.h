@@ -3,28 +3,20 @@
 #include <QPointF>
 #include <QWidget>
 #include <QPainter>
-#include <QGraphicsItem>
+#include <QGraphicsPathItem>
 #include <QStyleOptionGraphicsItem>
 #include <QGraphicsSceneHoverEvent>
+#include <QGraphicsDropShadowEffect>
 
 /// @brief 贝塞尔曲线
-class BezierCurveItem : public QGraphicsItem
+class BezierCurveItem : public QGraphicsPathItem
 {
 public:
     /// @brief 构造函数
     /// @param start_point 起始点
     /// @param end_point 终止点
     BezierCurveItem(const QPointF &start_point, const QPointF &end_point);
-    /// @brief 边界矩形
-    /// @return QRectF
-    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    /// @brief 鼠标按下事件
-    /// @param event 事件源
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    /// @brief 鼠标松开事件
-    /// @param event 事件源
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     /// @brief 更新
     /// @param start_point 起始点
     /// @param end_point 终止点
@@ -32,8 +24,6 @@ public:
 
     /// @brief 线颜色
     QColor line_color{Qt::blue};
-    /// @brief 线宽度
-    uint line_width{4};
 
 private:
     /// @brief 起始点
@@ -44,4 +34,7 @@ private:
     QPointF m_control1;
     /// @brief 控制点2
     QPointF m_control2;
+    /// @brief 选中阴影
+    QGraphicsDropShadowEffect *m_shadow;
+    QColor m_shadow_color;
 };

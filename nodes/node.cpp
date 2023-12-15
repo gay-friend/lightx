@@ -257,9 +257,8 @@ std::string get_node_type_name(Node::Type type)
     {
     case Node::CameraNode:
         return "Camera";
-        break;
-    
+
     default:
-        break;
+        return "Unknow";
     }
 }
