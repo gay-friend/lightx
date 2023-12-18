@@ -68,13 +68,14 @@ PortInfo NodeManager::get_port_info(int node_id, int port_id, int port_type)
 {
     PortInfo result;
     auto it = std::find_if(m_nodes.begin(), m_nodes.end(), [node_id](Node *node)
-                           { return node_id == node->id; });
+                           { return node_id == node->uuid; });
     if (it != m_nodes.end())
     {
         auto node = *it;
-        auto port_it = std::find_if(node->port_list.begin(), node->port_list.end(), [port_id](Port *port)
+        auto port_list = node->get_all_ports();
+        auto port_it = std::find_if(port_list.begin(), port_list.end(), [port_id](Port *port)
                                     { return port->id = port_id; });
-        if (port_it != node->port_list.end())
+        if (port_it != port_list.end())
         {
             result.node = node;
             result.port = *port_it;
@@ -219,7 +220,7 @@ void NodeManager::node_run(std::vector<Node *> nodes)
                     continue;
                 }
                 auto it = std::find_if(parent_nodes.begin(), parent_nodes.end(), [other_port_info](Node *n)
-                                       { return other_port_info.node->id == n->id; });
+                                       { return other_port_info.node->uuid == n->uuid; });
                 if (it == parent_nodes.end())
                 {
                     parent_nodes.push_back(other_port_info.node);
@@ -247,7 +248,7 @@ void NodeManager::node_run(std::vector<Node *> nodes)
                 other_port_info.port->set_port_value(out_port_info);
 
                 auto it = std::find_if(child_nodes.begin(), child_nodes.end(), [other_port_info](Node *node)
-                                       { return other_port_info.node->id == node->id; });
+                                       { return other_port_info.node->uuid == node->uuid; });
                 if (it == child_nodes.end())
                 {
                     child_nodes.push_back(other_port_info.node);
@@ -355,7 +356,7 @@ void NodeManager::delete_selected()
     // 先删除节点的端口所有连线 和节点
     for (auto node : nodes)
     {
-        for (auto port : node->port_list)
+        for (auto port : node->get_all_ports())
         {
             PortInfo portinfo;
             portinfo.node = node;

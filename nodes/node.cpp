@@ -1,14 +1,30 @@
 #include "nodes/node.h"
 
 Node::~Node() {}
-Node::Node(const std::string &node_name, Type node_type, QPointF pos) : type(node_type), name(node_name)
+Node::Node(const std::string &node_name, Type node_type, QPointF pos, bool is_preview)
+    : type(node_type), name(node_name), m_is_preview_node(is_preview)
 {
-
+    // set pos, flags
     setPos(pos);
-    setFlag(QGraphicsItem::ItemIsMovable, true);
-    setFlag(QGraphicsItem::ItemIsSelectable, true);
-    title_color = m_title_color_map[node_type];
-    id = m_node_id_count++;
+    setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemSendsGeometryChanges);
+
+    // init title color
+    m_title_color = m_title_color_map[node_type];
+    m_pen_default = QPen(m_title_color);
+    m_title_color.setAlpha(175);
+    m_brush_title = QBrush(m_title_color);
+
+    // init title
+    m_title_item = new QGraphicsTextItem(this);
+    m_title_item->setPlainText(QString::fromStdString(name));
+    m_title_item->setFont(m_title_font);
+    m_title_item->setDefaultTextColor(m_title_color);
+    m_title_item->setPos(m_title_padding, m_title_padding);
+
+    int title_width = m_title_font_size * name.length() + m_node_width_min;
+    m_node_width = title_width > m_node_width ? title_width : m_node_width;
+
+    uuid = m_node_id_count++;
 }
 
 void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -40,7 +56,7 @@ void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->setPen(Qt::NoPen);
 
     QLinearGradient gradient(title_bar_rect.topLeft(), title_bar_rect.bottomRight());
-    gradient.setColorAt(0, title_color);
+    gradient.setColorAt(0, m_title_color);
     gradient.setColorAt(1, QColor(70, 70, 70, 150));
     QBrush title_brush(gradient);
     painter->setBrush(title_brush);
@@ -55,7 +71,7 @@ void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->drawText(title_bar_rect, Qt::AlignCenter, QString::fromStdString(name));
 
     // 画端口
-    for (auto it : port_list)
+    for (auto it : get_all_ports())
     {
         QPen pen;
         QPolygonF triangle;
@@ -90,6 +106,19 @@ void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         painter->setFont(old_font);
     }
 }
+std::vector<Port *> Node::get_all_ports()
+{
+    std::vector<Port *> port_list;
+    for (auto it : m_in_ports)
+    {
+        port_list.push_back(it.second);
+    }
+    for (auto it : m_out_ports)
+    {
+        port_list.push_back(it.second);
+    }
+    return port_list;
+}
 
 void Node::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -103,7 +132,7 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
         setFlag(QGraphicsItem::ItemIsMovable, true);
     }
-    QGraphicsItem::mousePressEvent(event);
+    QGraphicsObject::mousePressEvent(event);
 }
 
 void Node::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -114,114 +143,102 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 QRectF Node::boundingRect() const
 {
-    uint in_count = get_input_count();
-    uint out_count = get_output_count();
-
-    uint _height = std::max(in_count, out_count) * 60;
-    return QRectF(0, 0, width, std::max(_height, height));
+    return QRectF(0, 0, m_node_width, m_node_height);
 }
 
 void Node::add_port(Port *port)
 {
-    port_list.push_back(port);
+    switch (port->type)
+    {
+    case Port::Input:
+    case Port::InputForce:
+        m_in_ports[port->id] = port;
+        break;
+    case Port::Output:
+        m_out_ports[port->id] = port;
+        break;
+
+    default:
+        break;
+    }
 }
 
 void Node::set_port_value(uint port_id, QVariant data, Port::Type type)
 {
-    auto i = std::find_if(port_list.begin(), port_list.end(), [type, port_id](Port *port)
-                          { return port->id == port_id && port->type == type; });
-
-    if (i != port_list.end())
+    auto port = get_port(port_id, type);
+    if (port != nullptr)
     {
-        Port *port = *i;
         port->data = data;
     }
 }
 
 QVariant Node::get_port_value(uint port_id, Port::Type type)
 {
-    return get_port(port_id, type)->data;
+    auto port = get_port(port_id, type);
+    if (port != nullptr)
+    {
+        return port->data;
+    }
+    return QVariant();
 }
 
 Port *Node::get_port(uint port_id, Port::Type type)
 {
-    auto i = std::find_if(port_list.begin(), port_list.end(), [type, port_id](Port *port)
-                          { return port->id == port_id && port->type == type; });
-
-    if (i != port_list.end())
+    auto port_list = type == Port::Output ? m_out_ports : m_in_ports;
+    if (port_list.count(port_id) > 0)
     {
-        return *i;
+        return port_list[port_id];
     }
     return nullptr;
-}
-
-void Node::set_port_data_type(uint port_id, Port::Type port_type, Port::DataType data_type)
-{
-    title_color = Port::PORT_COLOR_MAP[data_type];
-    Port *port = get_port(port_id, port_type);
-    port->data_type = data_type;
-    port->update();
 }
 
 bool Node::check_port_by_pos(QPointF pos)
 {
-    return std::any_of(port_list.begin(), port_list.end(), [pos](Port *port)
-                       { return port->rect.contains(pos); });
+    return get_port_by_pos(pos) != nullptr;
 }
 
 Port *Node::get_port_by_pos(QPointF pos)
 {
-    auto it = std::find_if(port_list.begin(), port_list.end(), [pos](Port *port)
-                           { return port->rect.contains(pos); });
-    if (it != port_list.end())
+    for (auto it : m_in_ports)
     {
-        return *it;
+        if (it.second->rect.contains(pos))
+        {
+            return it.second;
+        }
+    }
+    for (auto it : m_out_ports)
+    {
+        if (it.second->rect.contains(pos))
+        {
+            return it.second;
+        }
     }
     return nullptr;
-}
-
-uint Node::get_input_count() const
-{
-    return std::count_if(port_list.begin(), port_list.end(), [](Port *port)
-                         { return port->type == Port::Input || port->type == Port::InputForce; });
-}
-
-uint Node::get_output_count() const
-{
-    return std::count_if(port_list.begin(), port_list.end(), [](Port *port)
-                         { return port->type == Port::Output; });
-}
-
-QList<Port *> Node::get_in_ports()
-{
-    QList<Port *> result;
-    std::copy_if(
-        port_list.begin(), port_list.end(), std::back_inserter(result), [](Port *port)
-        { return port->type == Port::Input || port->type == Port::InputForce; });
-    return result;
-}
-
-QList<Port *> Node::get_out_ports()
-{
-    QList<Port *> result;
-    std::copy_if(port_list.begin(), port_list.end(), std::back_inserter(result), [](Port *port)
-                 { return port->type == Port::Output; });
-    return result;
 }
 
 QList<Port *> Node::get_connected_in_ports()
 {
     QList<Port *> result;
-    std::copy_if(port_list.begin(), port_list.end(), std::back_inserter(result), [](Port *port)
-                 { return port->is_connected && port->type == Port::Input || port->type == Port::InputForce; });
+    for (auto it : m_in_ports)
+    {
+        if (it.second->is_connected)
+        {
+            result.push_back(it.second);
+        }
+    }
     return result;
 }
 
 QList<Port *> Node::get_connected_out_port()
 {
     QList<Port *> result;
-    std::copy_if(port_list.begin(), port_list.end(), std::back_inserter(result), [](Port *port)
-                 { return port->is_connected && port->type == Port::Output; });
+    for (auto it : m_out_ports)
+    {
+        if (it.second->is_connected)
+        {
+            result.push_back(it.second);
+        }
+    }
     return result;
 }
 
@@ -233,22 +250,32 @@ void Node::run()
 
 bool Node::can_run()
 {
-    auto in_ports = get_in_ports();
     // 有任意强制节点未连接，则不能运行
-    return !std::any_of(in_ports.begin(), in_ports.end(), [](Port *port)
-                        { return (port->type == Port::InputForce) && (!port->is_connected); });
+    for (auto it : m_in_ports)
+    {
+        if (it.second->type == Port::InputForce && !it.second->is_connected)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool Node::is_start_node()
 {
-    auto in_ports = get_in_ports();
-    if (in_ports.count() == 0)
+    if (m_in_ports.size() == 0)
     {
         return true;
     }
-    // 所有输入节点未连接
-    return std::all_of(in_ports.begin(), in_ports.end(), [](Port *port)
-                       { return !port->is_connected; });
+    for (auto it : m_in_ports)
+    {
+        if (it.second->is_connected)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 std::string get_node_type_name(Node::Type type)

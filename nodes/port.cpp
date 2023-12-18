@@ -47,3 +47,22 @@ bool Port::set_port_value(Port *port)
     }
     return false;
 }
+
+template <typename T>
+void Port::set_value(T value)
+{
+    // TODO: 自动数据转换
+    if (typeid(value) == typeid(cv::Mat))
+    {
+        data.setValue(QVariant::fromValue(value));
+    }
+    else
+    {
+        data.setValue(value);
+    }
+}
+template <typename T>
+T Port::get_value()
+{
+    return data.value<T>();
+}

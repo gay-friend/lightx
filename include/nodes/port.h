@@ -3,8 +3,7 @@
 #include <QMap>
 #include <QPainter>
 #include <QGraphicsItem>
-#include <any>
-
+#include <opencv2/opencv.hpp>
 /// @brief 端口
 class Port
 {
@@ -23,10 +22,6 @@ public:
         Bool,
         String,
         Float,
-        Bit,
-        Vector2,
-        Vector3,
-        Color,
         Image,
     };
     /// @brief 构造函数
@@ -47,6 +42,10 @@ public:
     /// @return bool
     bool port_type_check(Type target_type);
     bool set_port_value(Port *port);
+    template <typename T>
+    T get_value();
+    template <typename T>
+    void set_value(T value);
 
     /// @brief 端口存放的数据
     QVariant data;
@@ -76,11 +75,7 @@ public:
         {Int, QColor(106, 34, 136)},
         {Bool, QColor(200, 50, 170)},
         {String, QColor(56, 136, 34)},
-        {Bit, QColor(160, 160, 100)},
         {Float, QColor(34, 136, 204)},
-        {Vector2, QColor(136, 84, 68)},
-        {Vector3, QColor(136, 34, 68)},
-        {Color, QColor(85, 34, 136)},
         {Image, QColor(100, 200, 200)}};
     /// @brief 端口数据类型名字表
     inline static std::map<DataType, const std::string &> PORT_DATA_TYPE_NAME_MAP{
@@ -88,10 +83,6 @@ public:
         {Bool, "布尔值"},
         {String, "字符串"},
         {Float, "小数"},
-        {Bit, "位"},
-        {Vector2, "2维向量"},
-        {Vector3, "3维向量"},
-        {Color, "颜色"},
         {Image, "图片"}};
     /// @brief 端口数据类型转换表
     inline static std::map<DataType, DataType> PORT_DATA_CONVERTION_MAP{
@@ -99,7 +90,7 @@ public:
         {Int, Float},
         {Int, String},
         {Int, Bool},
-        // float可转换类型
+        // float 可转换类型
         {Float, Int},
         {Float, String},
         {Float, Bool},
