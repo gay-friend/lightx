@@ -3,8 +3,8 @@
 #include <QGraphicsView>
 #include <vector>
 
-#include "entity/line_info.h"
-#include "entity/port_info.h"
+#include "entity/line_info.hpp"
+#include "entity/port_info.hpp"
 #include "utils/utils.h"
 
 class NodeManager
@@ -26,13 +26,12 @@ public:
     /// @brief 通过节点ID 端口ID 端口类型获取端口信息
     /// @param node_id 节点ID
     /// @param port_id 端口ID
-    /// @param port_type 端口类型
     /// @return 端口信息
-    PortInfo get_port_info(int node_id, int port_id, int port_type);
+    PortInfo get_port_info(const std::string &node_id, int port_id, Port::Type port_type);
     /// @brief 通过坐标获取节点
     /// @param pos 坐标
     /// @return 节点
-    Node *get_node(QPoint pos);
+    NodeWidget *get_node(QPoint pos);
     // std::vector<Node *> get_child_nodes(Por);
     /// @brief 获取端口所有连线信息
     /// @param port 端口
@@ -58,7 +57,7 @@ public:
     void update_node(QPoint pos);
     /// @brief 更新节点
     /// @param node 节点
-    void update_node(Node *node);
+    void update_node(NodeWidget *node);
     /// @brief 更新已选节点
     void update_selected_node();
     /// @brief 更新所有节点
@@ -73,20 +72,18 @@ public:
     void run();
     /// @brief 执行节点列表
     /// @param ports_info 端口信息列表
-    void node_run(std::vector<Node *> nodes);
+    void node_run(std::vector<NodeWidget *> nodes);
     /// @brief 刷新节点运行标识
     void nofe_reflush();
     /// @brief 添加节点
     /// @param node 节点
-    void add_node(Node *node);
+    void add_node(NodeWidget *node);
     /// @brief 端口连接
     /// @param orgin_node_id 原节点ID
     /// @param orgin_port_id 原端口ID
-    /// @param orgin_port_type 原端口类型
     /// @param target_node_id 目标节点ID
     /// @param target_port_id 目标端口ID
-    /// @param target_port_type 目标端口类型
-    void port_connect(int orgin_node_id, int orgin_port_id, int orgin_port_type, int target_node_id, int target_port_id, int target_port_type);
+    void port_connect(const std::string &orgin_node_id, int orgin_port_id, Port::Type origin_port_type, const std::string &target_node_id, int target_port_id, Port::Type target_port_type);
     /// @brief 端口连接
     /// @param info1 端口信息1
     /// @param info2 端口信息2
@@ -115,7 +112,7 @@ private:
     /// @brief 线信息列表
     std::vector<LineInfo> m_lines_info;
     /// @brief 节点列表
-    std::vector<Node *> m_nodes;
+    std::map<std::string, NodeWidget *> m_nodes_map;
     /// @brief 画布
     QGraphicsView *m_view;
 };

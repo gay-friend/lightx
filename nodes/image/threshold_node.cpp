@@ -4,12 +4,12 @@ NodeInfo get_node_info()
 {
     return NODE_INFO;
 }
-Node *create_node(QPointF pos)
+NodeWidget *create_node(QPointF pos)
 {
-    return dynamic_cast<Node *>(new ThresholdNode(pos));
+    return dynamic_cast<NodeWidget *>(new ThresholdNode(pos));
 }
 
-ThresholdNode::ThresholdNode(QPointF pos) : Node(NODE_INFO.name, NODE_INFO.type, pos)
+ThresholdNode::ThresholdNode(QPointF pos) : NodeWidget(NODE_INFO.name, NODE_INFO.type, pos)
 {
 
     add_port(new Port(0, "image", Port::InputForce, Port::Image));
@@ -19,7 +19,7 @@ ThresholdNode::ThresholdNode(QPointF pos) : Node(NODE_INFO.name, NODE_INFO.type,
 }
 void ThresholdNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Node::paint(painter, option, widget);
+    NodeWidget::paint(painter, option, widget);
     // 检查图片是否有效，然后绘制它
     if (!image.isNull())
     {

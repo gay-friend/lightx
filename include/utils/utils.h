@@ -39,7 +39,7 @@ public:
     /// @param node_name 节点名
     /// @param pos 坐标
     /// @return 节点
-    Node *create_node(const std::string &node_type, const std::string &node_name, QPointF pos);
+    Node *create_node(const std::string &node_type, const std::string &node_name);
     /// @brief 节点名
     std::vector<std::string> names;
     /// @brief 创建节点函数字典 {节点类型:{节点名: func}}

@@ -24,6 +24,9 @@ void NodeListWidget::startDrag(Qt::DropActions supportedActions)
     dragged_item = currentItem();
     QTreeWidget::startDrag(supportedActions);
 }
+void NodeListWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+}
 
 void NodeListWidget::build_tree(std::map<std::string, std::map<std::string, func_create_node *>> m_func_map)
 {
@@ -47,6 +50,7 @@ void NodeListWidget::build_tree(std::map<std::string, std::map<std::string, func
             node_item->setFlags(node_item->flags() ^ Qt::ItemIsDropEnabled);
             item->addChild(node_item);
         }
+        item->setFlags(item->flags() ^ Qt::ItemIsDropEnabled);
         items.append(item);
     }
 

@@ -1,15 +1,15 @@
+set(PROJECT_NAME examples)
+project(${PROJECT_NAME} VERSION 0.1)
+
 # 发现一个目录下所有的源代码文件并将列表存储在一个变量中
-file(GLOB_RECURSE SRCS ${ROOT}/src/*.cpp
-                       ${ROOT}/src/*.hpp
-                       ${ROOT}/include/entity/*.hpp
+file(GLOB_RECURSE SRCS ${ROOT}/examples/*.cpp
                        ${ROOT}/include/qwidgets/*.hpp
-                       ${ROOT}/include/widgets/*.h
                        )
 
 foreach(file ${SRCS})
     message(${file})
 endforeach()
-
+message(====================================${PROJECT_NAME})
 
 # find qt
 list(APPEND CMAKE_PREFIX_PATH ~/Qt/6.5.3/gcc_64)
@@ -18,5 +18,3 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(${PROJECT_NAME} PRIVATE node)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})

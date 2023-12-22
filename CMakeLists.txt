@@ -21,3 +21,4 @@ include_directories(${PROJECT_SOURCE_DIR}/include) # 添加头文件
 add_subdirectory(${PROJECT_SOURCE_DIR}/nodes node)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/examples)

@@ -60,7 +60,7 @@ void LibManager::unload()
     m_handle_map.clear();
     names.clear();
 }
-Node *LibManager::create_node(const std::string &node_type, const std::string &node_name, QPointF pos)
+Node *LibManager::create_node(const std::string &node_type, const std::string &node_name)
 {
     if (func_map.count(node_type) == 0 || func_map[node_type].count(node_name) == 0)
     {
@@ -71,5 +71,5 @@ Node *LibManager::create_node(const std::string &node_type, const std::string &n
     {
         return nullptr;
     }
-    return (*func)(pos);
+    return (*func)();
 }

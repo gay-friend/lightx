@@ -1,68 +1,95 @@
 #include "nodes/port.h"
 
-Port::Port() {}
-
-Port::~Port() {}
-
-Port::Port(uint id, const std::string &name, Type type, DataType data_type, QVariant data)
-    : type(type), id(id), name(name), data(data), data_type(data_type), color(PORT_COLOR_MAP[data_type])
+Port::Port(uint id, const std::string &name, Type type, DataType data_type, QColor color)
+    : id(id), name(name), type(type), data_type(data_type), color(color), QGraphicsItem(nullptr)
 {
-    // 设置端口颜色范围和端口文字范围和文字框对齐方向
-    rect = (type == Input || type == InputForce) ? QRectF(5, 50 + id * 42, 20, 20) : QRectF(135, 50 + id * 42, 20, 20);
-    text_rect = (type == Input || type == InputForce) ? QRectF(28, 50 + id * 42, 50, 28) : QRectF(83, 50 + id * 42, 50, 28);
-    text_align = (type == Input || type == InputForce) ? Qt::AlignLeft : Qt::AlignRight;
-    name_text_rect = (type == Input || type == InputForce) ? QRectF(5, rect.y() - 20, 50, 20) : QRectF(105, rect.y() - 20, 50, 20);
+    m_pen_default = QPen(color);
+    m_pen_default.setWidthF(1.5);
+
+    m_brush_default = QBrush(color);
+    m_font = QFont("Consolas", m_font_size);
+    m_label_size = QFontMetrics(m_font).horizontalAdvance(QString::fromStdString(name));
+    port_width = icon_size + m_label_size;
+}
+QRectF Port::boundingRect() const
+{
+    return QRectF(0, 0, port_width, icon_size);
 }
 
-void Port::update()
+void InputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    // 设置端口颜色范围和端口文字范围和文字对齐方向
-    rect = (type == Input || type == InputForce) ? QRectF(3, 45 + id * 30, 20, 20) : QRectF(127, 45 + id * 30, 20, 20);
-    text_rect = (type == Input || type == InputForce) ? QRectF(25, 45 + id * 28, 50, 28) : QRectF(75, 45 + id * 28, 50, 28);
-    text_align = (type == Input || type == InputForce) ? Qt::AlignLeft : Qt::AlignRight;
-
-    color = PORT_COLOR_MAP[data_type];
-}
-
-bool Port::port_type_check(Type traporttype)
-{
-    switch (traporttype)
+    // icon o-> 来表示
+    if (is_connected)
     {
-    case Input:
-    case InputForce:
-        return type == Output;
-    case Output:
-        return type == Input;
-    default:
-        return false;
-    }
-}
-bool Port::set_port_value(Port *port)
-{
-    // TODO: 自动数据转换
-    if (port->data_type == this->data_type)
-    {
-        this->data = port->data;
-        return true;
-    }
-    return false;
-}
-
-template <typename T>
-void Port::set_value(T value)
-{
-    // TODO: 自动数据转换
-    if (typeid(value) == typeid(cv::Mat))
-    {
-        data.setValue(QVariant::fromValue(value));
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(m_brush_default);
     }
     else
     {
-        data.setValue(value);
+        painter->setPen(m_pen_default);
+        painter->setBrush(Qt::NoBrush);
     }
+
+    auto size = 0.25 * icon_size;
+    painter->drawEllipse(QPointF(size, 2 * size), size, size);
+    QPolygonF poly;
+    poly.append(QPointF(0.6 * icon_size, 0.35 * icon_size));
+    poly.append(QPointF(0.75 * icon_size, 0.5 * icon_size));
+    poly.append(QPointF(0.6 * icon_size, 0.65 * icon_size));
+
+    painter->setBrush(m_brush_default);
+    painter->setPen(Qt::NoPen);
+    painter->drawPolygon(poly);
+
+    // port label
+    painter->setPen(m_pen_default);
+    painter->setFont(m_font);
+    painter->drawText(
+        QRectF(icon_size, 0, m_label_size, icon_size),
+        Qt::AlignmentFlag::AlignLeft | Qt::AlignmentFlag::AlignVCenter,
+        QString::fromStdString(name));
 }
-template <typename T>
-T Port::get_value()
+InputPort::InputPort(uint id, const std::string &name, Type type, DataType data_type, QColor color)
+    : Port(id, name, type, data_type, color)
 {
-    return data.value<T>();
+}
+
+void OutputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    // port label
+    painter->setPen(m_pen_default);
+    painter->setFont(m_font);
+    painter->drawText(
+        QRectF(icon_size, 0, m_label_size, icon_size),
+        Qt::AlignmentFlag::AlignRight | Qt::AlignmentFlag::AlignVCenter,
+        QString::fromStdString(name));
+
+    // icon o-> 来表示
+    if (is_connected)
+    {
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(m_brush_default);
+    }
+    else
+    {
+        painter->setPen(m_pen_default);
+        painter->setBrush(Qt::NoBrush);
+    }
+
+    painter->drawEllipse(
+        QPointF(m_label_size + 0.5 * icon_size, 0.5 * icon_size),
+        0.25 * icon_size,
+        0.25 * icon_size);
+    QPolygonF poly;
+    poly.append(QPointF(m_label_size + 0.85 * icon_size, 0.35 * icon_size));
+    poly.append(QPointF(m_label_size + 1 * icon_size, 0.5 * icon_size));
+    poly.append(QPointF(m_label_size + 0.85 * icon_size, 0.65 * icon_size));
+
+    painter->setBrush(m_brush_default);
+    painter->setPen(Qt::NoPen);
+    painter->drawPolygon(poly);
+}
+OutputPort::OutputPort(uint id, const std::string &name, Type type, DataType data_type, QColor color)
+    : Port(id, name, type, data_type, color)
+{
 }

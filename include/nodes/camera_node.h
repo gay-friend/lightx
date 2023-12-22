@@ -1,18 +1,15 @@
 #pragma once
-#include <iostream>
 
 #include "nodes/node.h"
-#include "utils/image_utils.h"
-
+#include "utils/image_utils.hpp"
+#include <iostream>
 #include <QImage>
-#include <QList>
-#include <QFileDialog>
 #include <filesystem>
 
 /// @brief 创建节点
 /// @param pos 坐标
 /// @return
-NODE_API Node *create_node(QPointF pos);
+NODE_API Node *create_node();
 /// @brief 获取节点信息
 /// @return
 NODE_API NodeInfo get_node_info();
@@ -24,10 +21,7 @@ NodeInfo NODE_INFO{"CameraNode", Node::CameraNode};
 class CameraNode : public Node
 {
 public:
-    /// @brief 构造函数
-    /// @param pos 坐标
-    CameraNode(QPointF pos);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    CameraNode(const std::string &node_name, Type node_type);
     /// @brief 执行节点
     void execute() override;
     /// @brief 初始化

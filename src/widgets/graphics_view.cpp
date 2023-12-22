@@ -128,7 +128,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
                 }
             }
 
-            click_info.node->setFlag(QGraphicsItem::ItemIsMovable, true);
+            click_info.node_widget->setFlag(QGraphicsItem::ItemIsMovable, true);
         }
         else if (m_is_drawing && release_info.is_empty() && !click_info.is_empty())
         {
@@ -183,10 +183,12 @@ void GraphicsView::dropEvent(QDropEvent *event)
         auto data = item->data(0, Qt::UserRole).value<QList<QString>>();
         QPointF pos(mapToScene(event->position().toPoint()));
 
-        auto node = node_manager.lib_manager->create_node(data[0].toStdString(), data[1].toStdString(), pos);
+        auto node = node_manager.lib_manager->create_node(data[0].toStdString(), data[1].toStdString());
+        auto node_widget = new NodeWidget(node, pos);
+
         if (node != nullptr)
         {
-            node_manager.add_node(node);
+            node_manager.add_node(node_widget);
             std::cout << data[1].toStdString() << " Add" << std::endl;
         }
         else
