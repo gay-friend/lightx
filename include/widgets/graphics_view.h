@@ -38,9 +38,6 @@ public:
     /// @brief 按键按松开事件
     /// @param event 事件源
     void keyReleaseEvent(QKeyEvent *event) override;
-    /// @brief 按键按下事件
-    /// @param event 事件源
-    void keyPressEvent(QKeyEvent *event) override;
     /// @brief 上下文菜单事件
     /// @param event 事件源
     void contextMenuEvent(QContextMenuEvent *event) override;

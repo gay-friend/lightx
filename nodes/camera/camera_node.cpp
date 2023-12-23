@@ -3,7 +3,7 @@ namespace fs = std::filesystem;
 
 Node *create_node()
 {
-    return dynamic_cast<Node *>(new CameraNode(NODE_INFO.name, NODE_INFO.type));
+    return new CameraNode(NODE_INFO.name, NODE_INFO.type);
 }
 NodeInfo get_node_info()
 {
@@ -12,6 +12,7 @@ NodeInfo get_node_info()
 
 CameraNode::CameraNode(const std::string &node_name, Type node_type) : Node(node_name, node_type)
 {
+    add_port(0, "im", Port::Output, Port::Image);
 }
 void CameraNode::init()
 {

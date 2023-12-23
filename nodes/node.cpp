@@ -8,16 +8,16 @@
 #endif
 #endif
 
-void Node::add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type, QColor color)
+void Node::add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type)
 {
     switch (type)
     {
     case Port::Input:
     case Port::InputForce:
-        m_ports.push_back(new InputPort(id, name, type, data_type, color));
+        m_ports.push_back(new InputPort(uuid, id, name, type, data_type));
         break;
     default:
-        m_ports.push_back(new OutputPort(id, name, type, data_type, color));
+        m_ports.push_back(new OutputPort(uuid, id, name, type, data_type));
         break;
     }
 }
@@ -36,6 +36,7 @@ bool Node::can_run()
             return false;
         }
     }
+    std::cout << uuid << "can run" << std::endl;
     return true;
 }
 void Node::run()
@@ -130,10 +131,10 @@ NodeWidget::NodeWidget(Node *node, QPointF pos) : node(node)
     m_title_item->setDefaultTextColor(m_title_color);
     m_title_item->setPos(m_title_padding, m_title_padding);
 
-    int title_width = m_title_font_size * title.length() + m_node_width_min;
-    m_node_width = title_width > m_node_width ? title_width : m_node_width;
+    uint title_width = m_title_font_size * title.length();
+    m_node_width = std::max(m_node_width_min, title_width);
 
-    // m_init_node_width_height();
+    m_init_node_width_height();
     // init_ports();
 
     // 选中投影
@@ -220,50 +221,6 @@ void NodeWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setPen(Qt::NoPen);
     painter->setBrush(m_brush_title_back);
     painter->drawPath(title_outline.simplified());
-
-    // 画端口
-    // for (auto it : get_all_ports())
-    // {
-    //     QPen pen;
-    //     QPolygonF triangle;
-
-    //     QColor port_color = Qt::NoBrush;
-    //     if (it->is_connected)
-    //     {
-    //         port_color = it->color;
-    //     }
-    //     else if (it->type == Port::InputForce)
-    //     {
-    //         port_color = Qt::red;
-    //     }
-
-    //     pen = QPen(it->color, 5);
-    //     pen.setCapStyle(Qt::RoundCap);
-    //     pen.setJoinStyle(Qt::RoundJoin);
-    //     painter->setPen(pen);
-    //     painter->setBrush(port_color);
-    //     painter->drawEllipse(it->rect);
-
-    //     painter->setPen(Qt::white);
-    //     // 画数据文本
-    //     painter->drawText(it->text_rect, it->text_align, it->data.toString());
-
-    //     // 画端口名字
-    //     QFont font;
-    //     QFont old_font = painter->font();
-    //     painter->setFont(font);
-    //     painter->setPen(Qt::gray);
-    //     painter->drawText(it->name_text_rect, it->text_align, QString::fromStdString(it->name));
-    //     painter->setFont(old_font);
-    // }
-}
-
-void NodeWidget::mousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    // static uint z = 0;
-    // setZValue(++z);
-    setFlag(QGraphicsItem::ItemIsMovable, node->get_port_by_pos(event->pos()) == nullptr);
-    QGraphicsObject::mousePressEvent(event);
 }
 
 void NodeWidget::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -277,9 +234,33 @@ QRectF NodeWidget::boundingRect() const
     return QRectF(0, 0, m_node_width, m_node_height);
 }
 
-Node *node;
+void NodeWidget::m_init_node_width_height()
+{
+    auto max_in_port_width = 0;
+    auto max_out_port_width = 0;
+    auto in_height = 0;
+    auto out_height = 0;
 
-void NodeWidget::m_init_node_width_height() {}
+    auto ports = node->get_all_ports();
+    for (auto port : ports)
+    {
+        if (port->type == Port::Output)
+        {
+            max_out_port_width = std::max(max_out_port_width, port->port_width);
+            out_height += port->icon_size + m_port_padding;
+        }
+        else
+        {
+            max_in_port_width = std::max(max_in_port_width, port->port_width);
+            in_height += port->icon_size + m_port_padding;
+        }
+    }
+
+    m_node_width = std::max(m_node_width, max_in_port_width + max_out_port_width + m_port_space);
+
+    m_node_height = std::max(out_height, in_height) + m_title_height + 10;
+    m_node_height = std::max(m_node_height, m_node_height_min);
+}
 
 std::string get_node_type_name(Node::Type type)
 {

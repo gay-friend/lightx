@@ -64,3 +64,10 @@ void BezierCurveItem::update_point(const QPointF &start_point, const QPointF &en
     prepareGeometryChange();
     update();
 }
+
+void BezierCurveItem::update_point(const QPointF &point)
+{
+    m_start = point;
+    prepareGeometryChange();
+    update();
+}

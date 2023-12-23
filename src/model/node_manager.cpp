@@ -7,37 +7,31 @@ NodeManager::NodeManager(QGraphicsView *view) : m_view(view)
 NodeManager::~NodeManager()
 {
 }
-std::vector<PortInfo> NodeManager::get_other_ports_info(Port *port)
+std::vector<Port *> NodeManager::get_other_ports(Port *port)
 {
-    std::vector<PortInfo> result;
+    std::vector<Port *> result;
     for (auto info : m_lines_info)
     {
-        if (info.port_info1.port == port || info.port_info2.port == port)
+        if (info.port1 == port || info.port2 == port)
         {
             result.push_back(info.get_other_port_info_by_port(port));
         }
     }
     return result;
 }
-PortInfo NodeManager::get_port_info(QPoint pos)
+Port *NodeManager::get_port(QPoint pos)
 {
-    PortInfo result;
     QGraphicsItem *clicked_item = m_view->itemAt(pos);
     if (clicked_item != nullptr)
     {
-        NodeWidget *node_widget = dynamic_cast<NodeWidget *>(clicked_item);
-        if (node_widget != nullptr)
-        {
-            auto node = node_widget->node;
-            Port *port = node->get_port_by_pos(node_widget->mapFromScene(m_view->mapToScene(pos)));
-            if (port != nullptr)
-            {
-                result.node_widget = node_widget;
-                result.port = port;
-            }
-        }
+        auto port = dynamic_cast<Port *>(clicked_item);
+        return port;
     }
-    return result;
+    return nullptr;
+}
+NodeWidget *NodeManager::get_node(Port *port)
+{
+    return m_nodes_map.count(port->node_id) == 0 ? nullptr : m_nodes_map[port->node_id];
 }
 NodeWidget *NodeManager::get_node(QPoint pos)
 {
@@ -55,47 +49,48 @@ NodeWidget *NodeManager::get_node(QPoint pos)
 
 std::vector<LineInfo> NodeManager::get_lines_info(Port *port)
 {
-    std::vector<LineInfo> result;
+    std::vector<LineInfo> lines;
     for (auto info : m_lines_info)
     {
-        if (info.port_info1.port == port || info.port_info2.port == port)
+        if (info.port1 == port || info.port2 == port)
         {
-            result.push_back(info);
+            lines.push_back(info);
         }
     }
-    return result;
+    return lines;
 }
-PortInfo NodeManager::get_port_info(const std::string &node_id, int port_id, Port::Type port_type)
+Port *NodeManager::get_port(const std::string &node_id, int port_id, Port::Type port_type)
 {
-    PortInfo result;
     if (m_nodes_map.count(node_id) == 0)
     {
-        return result;
+        return nullptr;
     }
     auto node_widget = m_nodes_map[node_id];
-    auto port = node_widget->node->get_port(port_id, port_type);
-    if (port != nullptr)
+    return node_widget->node->get_port(port_id, port_type);
+}
+
+bool NodeManager::port_type_check(Port *port1, Port *port2)
+{
+    switch (port1->type)
     {
-        result.node_widget = node_widget;
-        result.port = port;
+    case Port::Input:
+    case Port::InputForce:
+        return port2->type == Port::Output;
+    case Port::Output:
+        return port2->type == Port::Input || port2->type == Port::InputForce;
+
+    default:
+        return false;
     }
-
-    return result;
 }
-
-bool NodeManager::port_type_check(PortInfo info1, PortInfo info2)
+bool NodeManager::port_monotonicity_check(Port *port1, Port *port2)
 {
-    // TODO: port type check
-    return true;
-}
-bool NodeManager::port_monotonicity_check(PortInfo info1, PortInfo info2)
-{
-    auto is_input = info1.port->type == Port::Input || info1.port->type == Port::InputForce;
-    if (info1.port->is_connected && is_input)
+    auto is_input = port1->type == Port::Input || port1->type == Port::InputForce;
+    if (port1->is_connected && is_input)
     {
         return false;
     }
-    else if (info2.port->is_connected && is_input)
+    else if (port2->is_connected && is_input)
     {
         return false;
     }
@@ -104,9 +99,9 @@ bool NodeManager::port_monotonicity_check(PortInfo info1, PortInfo info2)
         return true;
     }
 }
-bool NodeManager::port_data_type_check(PortInfo info1, PortInfo info2)
+bool NodeManager::port_data_type_check(Port *port1, Port *port2)
 {
-    return info1.port->data_type == info2.port->data_type;
+    return port1->data_type == port2->data_type;
 }
 
 void NodeManager::update_node(QPoint pos)
@@ -120,32 +115,21 @@ void NodeManager::update_node(NodeWidget *node_widget)
     {
         return;
     }
-    std::vector<LineInfo> infos;
-    std::copy_if(m_lines_info.begin(), m_lines_info.end(), std::back_inserter(infos), [node_widget](LineInfo info)
-                 { return info.port_info1.node_widget == node_widget || info.port_info2.node_widget == node_widget; });
-    for (auto info : infos)
+
+    auto uuid = node_widget->node->uuid;
+    for (auto info : m_lines_info)
     {
-        auto start = info.port_info1.node_widget->mapToScene(info.port_info1.port->boundingRect().center());
-        auto end = info.port_info2.node_widget->mapToScene(info.port_info2.port->boundingRect().center());
-        info.port_info1.port->is_connected = true;
-        info.port_info2.port->is_connected = true;
-        info.line->update_point(start, end);
+        if (info.port1->node_id == uuid || info.port2->node_id == uuid)
+        {
+            info.line->update_point(info.port1->get_port_pos(), info.port2->get_port_pos());
+        }
     }
 }
 void NodeManager::update_selected_node()
 {
-    auto items = m_view->scene()->selectedItems();
-    if (items.count() == 0)
+    for (auto item : m_view->scene()->selectedItems())
     {
-        return;
-    }
-    std::vector<QGraphicsItem *> nodes;
-    std::copy_if(items.begin(), items.end(), std::back_inserter(nodes), [](QGraphicsItem *item)
-                 { return dynamic_cast<NodeWidget *>(item) != nullptr; });
-
-    for (auto node : nodes)
-    {
-        update_node(dynamic_cast<NodeWidget *>(node));
+        update_node(dynamic_cast<NodeWidget *>(item));
     }
 }
 void NodeManager::update_all_node()
@@ -212,18 +196,18 @@ void NodeManager::node_run(std::vector<NodeWidget *> nodes)
         std::vector<NodeWidget *> parent_nodes;
         for (auto in_port_info : in_ports_info)
         {
-            for (auto other_port_info : get_other_ports_info(in_port_info))
+            for (auto other_port : get_other_ports(in_port_info))
             {
-                auto other_node = other_port_info.node_widget->node;
-                if (other_node->is_executed)
+                auto other_node = m_nodes_map[other_port->node_id];
+                if (other_node->node->is_executed)
                 {
                     continue;
                 }
                 auto it = std::find_if(parent_nodes.begin(), parent_nodes.end(), [other_node](NodeWidget *n)
-                                       { return other_node->uuid == n->node->uuid; });
+                                       { return other_node->node->uuid == n->node->uuid; });
                 if (it == parent_nodes.end())
                 {
-                    parent_nodes.push_back(other_port_info.node_widget);
+                    parent_nodes.push_back(other_node);
                 }
             }
         }
@@ -242,7 +226,7 @@ void NodeManager::node_run(std::vector<NodeWidget *> nodes)
         std::vector<NodeWidget *> child_nodes;
         for (auto out_port_info : out_ports_info)
         {
-            for (auto other_port_info : get_other_ports_info(out_port_info))
+            for (auto other_port_info : get_other_ports(out_port_info))
             {
                 // 给子节点输入端口赋值
                 // other_port_info.port->set_port_value(out_port_info);
@@ -278,52 +262,50 @@ void NodeManager::add_node(NodeWidget *node)
 }
 void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_id, Port::Type origin_port_type, const std::string &target_node_id, int target_port_id, Port::Type target_port_type)
 {
-    auto info1 = get_port_info(orgin_node_id, orgin_port_id, origin_port_type);
-    auto info2 = get_port_info(target_node_id, target_port_id, target_port_type);
+    auto port1 = get_port(orgin_node_id, orgin_port_id, origin_port_type);
+    auto port2 = get_port(target_node_id, target_port_id, target_port_type);
 
-    if (!info1.is_empty() && info2.is_empty())
+    if (port1 != nullptr && port2 == nullptr)
     {
-        if (port_type_check(info1, info2) && port_monotonicity_check(info1, info2) && port_data_type_check(info1, info2))
+        if (port_type_check(port1, port2) && port_monotonicity_check(port1, port2) && port_data_type_check(port1, port2))
         {
-            port_connect(info1, info2);
+            port_connect(port1, port2);
         }
     }
 }
-void NodeManager::port_connect(PortInfo info1, PortInfo info2)
+void NodeManager::port_connect(Port *port1, Port *port2)
 {
-    QPointF start(info1.node_widget->mapToScene(info1.port->boundingRect().center()));
-    QPointF end(info2.node_widget->mapToScene(info2.port->boundingRect().center()));
-    BezierCurveItem *curve_item = new BezierCurveItem(start, end);
-    curve_item->line_color = info1.port->color;
-    LineInfo info;
-    info.line = curve_item;
-    info.port_info1 = info1;
-    info.port_info2 = info2;
-    m_view->scene()->addItem(curve_item);
+    auto start = port1->get_port_pos();
+    auto end = port2->get_port_pos();
+    port1->is_connected = true;
+    port2->is_connected = true;
+
+    auto line = new BezierCurveItem(start, end);
+    line->line_color = port1->color;
+    LineInfo info(port1, port2, line);
+    m_view->scene()->addItem(line);
     add_relation(info);
-    info1.port->is_connected = true;
-    info2.port->is_connected = true;
 }
-void NodeManager::port_reconnect(PortInfo info1, PortInfo info2)
+void NodeManager::port_reconnect(Port *port1, Port *port2)
 {
-    if (info1.port->type == Port::Input || info1.port->type == Port::InputForce)
+    if (port1->type == Port::Input || port1->type == Port::InputForce)
     {
-        delete_port_connect(info1);
+        delete_port_connect(port1);
     }
-    if (info2.port->type == Port::Input || info2.port->type == Port::InputForce)
+    if (port2->type == Port::Input || port2->type == Port::InputForce)
     {
-        delete_port_connect(info2);
+        delete_port_connect(port2);
     }
-    port_connect(info1, info2);
+    port_connect(port1, port2);
 }
-bool NodeManager::port_type_is_convertion(PortInfo info1, PortInfo info2)
+bool NodeManager::port_type_is_convertion(Port *port1, Port *port2)
 {
     return false;
 }
-void NodeManager::delete_port_connect(PortInfo info)
+void NodeManager::delete_port_connect(Port *port)
 {
-    auto it = std::find_if(m_lines_info.begin(), m_lines_info.end(), [info](const LineInfo &lineinfo)
-                           { return lineinfo.port_info1.port == info.port || lineinfo.port_info2.port == info.port; });
+    auto it = std::find_if(m_lines_info.begin(), m_lines_info.end(), [port](const LineInfo &lineinfo)
+                           { return lineinfo.port1 == port || lineinfo.port2 == port; });
 
     if (it != m_lines_info.end())
     {
@@ -358,10 +340,7 @@ void NodeManager::delete_selected()
     {
         for (auto port : node->node->get_all_ports())
         {
-            PortInfo portinfo;
-            portinfo.node_widget = node;
-            portinfo.port = port;
-            delete_port_connect(portinfo);
+            delete_port_connect(port);
         }
         if (m_nodes_map.count(node->node->uuid))
         {
@@ -381,7 +360,7 @@ void NodeManager::delete_selected()
             {
                 if (lineinfo.line == line)
                 {
-                    delete_port_connect(lineinfo.port_info1);
+                    delete_port_connect(lineinfo.port1);
                 }
             }
         }

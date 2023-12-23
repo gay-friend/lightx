@@ -16,16 +16,18 @@ public:
     };
     enum DataType
     {
+        Float,
         Int,
         Bool,
         String,
-        Float,
         Image,
     };
 
-    Port(uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int, QColor color = "#ffffff");
+    Port(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     QRectF boundingRect() const;
+    virtual QPointF get_port_pos();
 
+    std::string node_id;
     uint id;
     std::string name;
     Type type;
@@ -37,6 +39,13 @@ public:
     int port_width;
 
 protected:
+    inline static std::map<DataType, QColor> COLOR_MAP{
+        {Port::Float, QColor("#2fFF09")},
+        {Port::Int, QColor("#2fFF09")},
+        {Port::Bool, QColor("#2fFF09")},
+        {Port::String, QColor("#2fFF09")},
+        {Port::Image, QColor("#00BFFF")},
+    };
     QPen m_pen_default;
     QBrush m_brush_default;
     QFont m_font;
@@ -47,14 +56,14 @@ protected:
 class InputPort : public Port
 {
 public:
-    InputPort(uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int, QColor color = "#ffffff");
-
+    InputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 };
 
 class OutputPort : public Port
 {
 public:
-    OutputPort(uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int, QColor color = "#ffffff");
+    OutputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    virtual QPointF get_port_pos() override;
 };

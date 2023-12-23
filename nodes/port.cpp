@@ -1,15 +1,20 @@
 #include "nodes/port.h"
 
-Port::Port(uint id, const std::string &name, Type type, DataType data_type, QColor color)
-    : id(id), name(name), type(type), data_type(data_type), color(color), QGraphicsItem(nullptr)
+Port::Port(const std::string &node_id, uint id, const std::string &name, Type type, DataType data_type)
+    : node_id(node_id), id(id), name(name), type(type), data_type(data_type), QGraphicsItem(nullptr)
 {
+    color = COLOR_MAP[data_type];
     m_pen_default = QPen(color);
     m_pen_default.setWidthF(1.5);
-
     m_brush_default = QBrush(color);
     m_font = QFont("Consolas", m_font_size);
     m_label_size = QFontMetrics(m_font).horizontalAdvance(QString::fromStdString(name));
     port_width = icon_size + m_label_size;
+}
+QPointF Port::get_port_pos()
+{
+    auto pos = scenePos();
+    return QPointF(pos.x() + 0.25 * icon_size, pos.y() + 0.5 * icon_size);
 }
 QRectF Port::boundingRect() const
 {
@@ -49,8 +54,8 @@ void InputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         Qt::AlignmentFlag::AlignLeft | Qt::AlignmentFlag::AlignVCenter,
         QString::fromStdString(name));
 }
-InputPort::InputPort(uint id, const std::string &name, Type type, DataType data_type, QColor color)
-    : Port(id, name, type, data_type, color)
+InputPort::InputPort(const std::string &node_id, uint id, const std::string &name, Type type, DataType data_type)
+    : Port(node_id, id, name, type, data_type)
 {
 }
 
@@ -60,7 +65,7 @@ void OutputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setPen(m_pen_default);
     painter->setFont(m_font);
     painter->drawText(
-        QRectF(icon_size, 0, m_label_size, icon_size),
+        QRectF(0, 0, m_label_size, icon_size),
         Qt::AlignmentFlag::AlignRight | Qt::AlignmentFlag::AlignVCenter,
         QString::fromStdString(name));
 
@@ -75,7 +80,7 @@ void OutputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         painter->setPen(m_pen_default);
         painter->setBrush(Qt::NoBrush);
     }
-
+    auto size = 0.25 * icon_size;
     painter->drawEllipse(
         QPointF(m_label_size + 0.5 * icon_size, 0.5 * icon_size),
         0.25 * icon_size,
@@ -89,7 +94,13 @@ void OutputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setPen(Qt::NoPen);
     painter->drawPolygon(poly);
 }
-OutputPort::OutputPort(uint id, const std::string &name, Type type, DataType data_type, QColor color)
-    : Port(id, name, type, data_type, color)
+OutputPort::OutputPort(const std::string &node_id, uint id, const std::string &name, Type type, DataType data_type)
+    : Port(node_id, id, name, type, data_type)
 {
+}
+
+QPointF OutputPort::get_port_pos()
+{
+    auto pos = scenePos();
+    return QPointF(pos.x() + m_label_size + 0.5 * icon_size, pos.y() + 0.5 * icon_size);
 }

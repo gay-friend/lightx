@@ -23,11 +23,11 @@ class CameraNode : public Node
 public:
     CameraNode(const std::string &node_name, Type node_type);
     /// @brief 执行节点
-    void execute() override;
+    virtual void execute() override;
     /// @brief 初始化
-    void init() override;
+    virtual void init() override;
     /// @brief 反初始化
-    void uninit() override;
+    virtual void uninit() override;
     std::string dir{"/home/torchlab/cpp-learn/prod/assets/images"};
 
     QImage image;

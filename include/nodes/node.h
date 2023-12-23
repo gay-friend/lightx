@@ -41,7 +41,7 @@ public:
     virtual void execute() = 0;
 
     Node(const std::string &node_name, Type node_type);
-    void add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type, QColor color = "#ffffff");
+    void add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);
     bool can_run();
     void run();
     /// @brief 获取端口
@@ -87,9 +87,9 @@ public:
     NodeWidget(Node *node, QPointF pos = QPointF(0, 0));
     virtual ~NodeWidget();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    /// @brief 鼠标按下事件
-    /// @param event 时间源
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    // /// @brief 鼠标按下事件
+    // /// @param event 时间源
+    // void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     /// @brief 鼠标移动事件
     /// @param event
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -102,13 +102,14 @@ private:
     void m_init_node_width_height();
     QGraphicsDropShadowEffect *m_shadow;
     /// @brief 高
-    uint m_node_height = 70;
+    uint m_node_height{50};
     /// @brief 宽
-    uint m_node_width = 100;
+    uint m_node_width;
     uint m_node_width_min{20};
     uint m_node_height_min{40};
     uint m_node_radius{3};
     uint m_port_padding{10};
+    uint m_port_space{5};
 
     QBrush m_brush_title_back;
     QPen m_pen_default;
@@ -122,7 +123,7 @@ private:
     /// @brief 节点ID计数
     inline static uint m_node_id_count = 0;
     /// @brief 标题颜色字典
-    inline static QMap<Node::Type, QColor> m_title_color_map{
+    inline static std::map<Node::Type, QColor> m_title_color_map{
         {Node::CameraNode, QColor("#f5232e")},
         // {CameraNode, QColor("#88df00")},
         // {CameraNode, QColor("#fa8b17")},

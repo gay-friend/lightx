@@ -4,24 +4,20 @@ NodeInfo get_node_info()
 {
     return NODE_INFO;
 }
-NodeWidget *create_node(QPointF pos)
+Node *create_node()
 {
-    return dynamic_cast<NodeWidget *>(new SplitImageNode(pos));
+    return new SplitImageNode(NODE_INFO.name, NODE_INFO.type);
 }
 
-SplitImageNode::SplitImageNode(QPointF pos) : NodeWidget(NODE_INFO.name, NODE_INFO.type, pos)
+SplitImageNode::SplitImageNode(const std::string &node_name, Type node_type) : Node(node_name, node_type)
 {
 
-    add_port(new Port(0, "Image", Port::InputForce, Port::Image, QImage()));
+    add_port(0, "Image", Port::InputForce, Port::Image);
 
-    add_port(new Port(0, "Image", Port::Output, Port::Image, QImage()));
-    add_port(new Port(1, "R", Port::Output, Port::Image, QImage()));
-    add_port(new Port(2, "G", Port::Output, Port::Image, QImage()));
-    add_port(new Port(3, "B", Port::Output, Port::Image, QImage()));
-}
-void SplitImageNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    NodeWidget::paint(painter, option, widget);
+    add_port(0, "Image", Port::Output, Port::Image);
+    add_port(1, "R", Port::Output, Port::Image);
+    add_port(2, "G", Port::Output, Port::Image);
+    add_port(3, "B", Port::Output, Port::Image);
 }
 
 void SplitImageNode::init()

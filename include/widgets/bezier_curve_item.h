@@ -21,6 +21,7 @@ public:
     /// @param start_point 起始点
     /// @param end_point 终止点
     void update_point(const QPointF &start_point, const QPointF &end_point);
+    void update_point(const QPointF &point);
 
     /// @brief 线颜色
     QColor line_color{Qt::blue};

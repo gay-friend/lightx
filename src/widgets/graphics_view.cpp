@@ -60,24 +60,28 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
     {
         m_preview_line.setVisible(true);
 
-        m_preview_line.update_point(mapToScene(m_mouse_clike_pos), mapToScene(m_mouse_current_pos));
+        m_preview_line.update_point(mapToScene(m_mouse_current_pos));
         m_preview_line.line_color = m_line_color;
     }
-
-    QGraphicsView::mouseMoveEvent(event);
+    else
+    {
+        QGraphicsView::mouseMoveEvent(event);
+    }
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
     m_mouse_clike_pos = event->pos();
-    PortInfo info = node_manager.get_port_info(m_mouse_clike_pos);
+    auto port = node_manager.get_port(m_mouse_clike_pos);
     switch (event->button())
     {
     case Qt::LeftButton:
-        if (!info.is_empty() && !m_drag_mode)
+        if (port != nullptr && !m_drag_mode)
         {
             m_is_drawing = true;
-            m_line_color = info.port->color;
+            m_line_color = port->color;
+            m_preview_line.update_point(port->get_port_pos(), port->get_port_pos());
+            return;
         }
 
         break;
@@ -104,38 +108,38 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
     // 不显示画线预览线
     m_preview_line.setVisible(false);
     m_mouse_release_pos = event->pos();
-    PortInfo release_info, click_info;
+    Port *release_port;
+    Port *click_port;
 
     switch (event->button())
     {
     case Qt::LeftButton:
         // 尝试获取释放位置的端口信息
-        release_info = node_manager.get_port_info(m_mouse_release_pos);
-        click_info = node_manager.get_port_info(m_mouse_clike_pos);
+        release_port = node_manager.get_port(m_mouse_release_pos);
+        click_port = node_manager.get_port(m_mouse_clike_pos);
 
-        if (!release_info.is_empty() && m_is_drawing)
+        if (release_port != nullptr && m_is_drawing)
         {
-            if (node_manager.port_type_check(click_info, release_info) &&
-                node_manager.port_data_type_check(click_info, release_info))
+            if (node_manager.port_type_check(click_port, release_port) &&
+                node_manager.port_data_type_check(click_port, release_port))
             {
-                if (node_manager.port_monotonicity_check(click_info, release_info))
+                if (node_manager.port_monotonicity_check(click_port, release_port))
                 {
-                    node_manager.port_connect(click_info, release_info);
+                    node_manager.port_connect(click_port, release_port);
                 }
                 else
                 {
-                    node_manager.port_reconnect(click_info, release_info);
+                    node_manager.port_reconnect(click_port, release_port);
                 }
             }
-
-            click_info.node_widget->setFlag(QGraphicsItem::ItemIsMovable, true);
+            node_manager.get_node(click_port)->setFlag(QGraphicsItem::ItemIsMovable, true);
         }
-        else if (m_is_drawing && release_info.is_empty() && !click_info.is_empty())
+        else if (m_is_drawing && release_port == nullptr && click_port != nullptr)
         {
             // 移除线
-            if (click_info.port->type == Port::Input || click_info.port->type == Port::InputForce)
+            if (click_port->type == Port::Input || click_port->type == Port::InputForce)
             {
-                node_manager.delete_port_connect(click_info);
+                node_manager.delete_port_connect(click_port);
             }
         }
         break;
@@ -203,10 +207,6 @@ void GraphicsView::dropEvent(QDropEvent *event)
     }
 }
 
-void GraphicsView::keyPressEvent(QKeyEvent *event)
-{
-    QGraphicsView::keyPressEvent(event);
-}
 void GraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
     switch (event->key())

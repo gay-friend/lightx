@@ -15,4 +15,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})
 
 add_subdirectory(camera)
-# add_subdirectory(image)
+add_subdirectory(image)
