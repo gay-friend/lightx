@@ -305,8 +305,7 @@ void NodeManager::delete_port_connect(Port *port)
 
     if (it != m_lines_info.end())
     {
-        auto line = *it;
-        line.delete_line();
+        (*it).delete_line();
         // 删除找到连线信息
         m_lines_info.erase(it);
     }
@@ -342,23 +341,19 @@ void NodeManager::delete_selected()
         {
             m_nodes_map.erase(node->node->uuid);
             delete node;
-            node = nullptr;
         }
     }
 
     // 删除线
     for (auto line : lines)
     {
-        if (line != nullptr)
+        // 去关系里面找
+        auto it = std::find_if(m_lines_info.begin(), m_lines_info.end(), [line](LineInfo i)
+                               { return i.line == line; });
+        if (it != m_lines_info.end())
         {
-            // 去关系里面找
-            for (auto lineinfo : m_lines_info)
-            {
-                if (lineinfo.line == line)
-                {
-                    delete_port_connect(lineinfo.port1);
-                }
-            }
+            (*it).delete_line();
+            m_lines_info.erase(it);
         }
     }
 }
