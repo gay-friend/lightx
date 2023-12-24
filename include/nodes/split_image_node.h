@@ -12,7 +12,7 @@ NODE_API Node *create_node();
 NODE_API NodeInfo get_node_info();
 
 /// @brief 节点信息
-NodeInfo NODE_INFO{"SplitImageNode", Node::CameraNode};
+NodeInfo NODE_INFO{"Split", Node::CameraNode};
 
 class SplitImageNode : public Node
 {

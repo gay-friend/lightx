@@ -15,7 +15,7 @@ NODE_API Node *create_node();
 NODE_API NodeInfo get_node_info();
 
 /// @brief 节点信息
-NodeInfo NODE_INFO{"CameraNode", Node::CameraNode};
+NodeInfo NODE_INFO{"Camera", Node::CameraNode};
 
 /// @brief 相机节点
 class CameraNode : public Node
@@ -28,9 +28,7 @@ public:
     virtual void init() override;
     /// @brief 反初始化
     virtual void uninit() override;
-    std::string dir{"/home/torchlab/cpp-learn/prod/assets/images"};
-
-    QImage image;
+    std::string dir{"/home/lightx/cpp-learn/lightx/assets/images"};
 
 private:
     std::vector<std::string> m_image_files;

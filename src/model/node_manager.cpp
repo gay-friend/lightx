@@ -221,22 +221,19 @@ void NodeManager::node_run(std::vector<NodeWidget *> nodes)
         }
 
         // 获取所有已连接的输出端口
-        auto out_ports_info = node->get_connected_out_port();
+        auto out_ports = node->get_connected_out_port();
         // 获取所有子节点
         std::vector<NodeWidget *> child_nodes;
-        for (auto out_port_info : out_ports_info)
+        for (auto out_port : out_ports)
         {
-            for (auto other_port_info : get_other_ports(out_port_info))
+            for (auto in_port : get_other_ports(out_port))
             {
-                // 给子节点输入端口赋值
-                // other_port_info.port->set_port_value(out_port_info);
-
-                // auto it = std::find_if(child_nodes.begin(), child_nodes.end(), [other_port_info](NodeWidget *node)
-                //                        { return other_port_info.node->uuid == node->uuid; });
-                // if (it == child_nodes.end())
-                // {
-                //     child_nodes.push_back(other_port_info.node);
-                // }
+                auto it = std::find_if(child_nodes.begin(), child_nodes.end(), [in_port](NodeWidget *node)
+                                       { return in_port->node_id == node->node->uuid; });
+                if (it == child_nodes.end())
+                {
+                    child_nodes.push_back(m_nodes_map[in_port->node_id]);
+                }
             }
         }
         // 递归执行子节点
@@ -277,8 +274,7 @@ void NodeManager::port_connect(Port *port1, Port *port2)
 {
     auto start = port1->get_port_pos();
     auto end = port2->get_port_pos();
-    port1->is_connected = true;
-    port2->is_connected = true;
+    port1->connect(port2);
 
     auto line = new BezierCurveItem(start, end);
     line->line_color = port1->color;

@@ -13,7 +13,7 @@ NODE_API Node *create_node();
 NODE_API NodeInfo get_node_info();
 
 /// @brief 节点信息
-NodeInfo NODE_INFO{"ThresholdNode", Node::CameraNode};
+NodeInfo NODE_INFO{"Threshold", Node::CameraNode};
 
 class ThresholdNode : public Node
 {
@@ -27,8 +27,4 @@ public:
     virtual void init() override;
     /// @brief 反初始化
     virtual void uninit() override;
-    /// @brief 二值化阈值
-    int threshold{50};
-
-    QImage image;
 };

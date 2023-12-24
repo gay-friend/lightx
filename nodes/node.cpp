@@ -8,18 +8,29 @@
 #endif
 #endif
 
-void Node::add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type)
+Port *Node::add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type)
 {
+    Port *port;
     switch (type)
     {
     case Port::Input:
     case Port::InputForce:
-        m_ports.push_back(new InputPort(uuid, id, name, type, data_type));
+        port = new InputPort(uuid, id, name, type, data_type);
         break;
     default:
-        m_ports.push_back(new OutputPort(uuid, id, name, type, data_type));
+        port = new OutputPort(uuid, id, name, type, data_type);
         break;
     }
+    m_ports.push_back(port);
+    return port;
+}
+void Node::add_pair_port(uint id, const std::string &name, Port::DataType data_type, bool in_force)
+{
+    auto type = in_force ? Port::InputForce : Port::Input;
+    auto in_port = new InputPort(uuid, id, name, type, data_type);
+    auto out_port = new OutputPort(in_port, uuid, id, name, Port::Output, data_type);
+    m_ports.push_back(in_port);
+    m_ports.push_back(out_port);
 }
 
 Node::Node(const std::string &node_name, Type node_type) : name(node_name), type(node_type)
@@ -36,7 +47,6 @@ bool Node::can_run()
             return false;
         }
     }
-    std::cout << uuid << "can run" << std::endl;
     return true;
 }
 void Node::run()
@@ -135,7 +145,6 @@ NodeWidget::NodeWidget(Node *node, QPointF pos) : node(node)
     m_node_width = std::max(m_node_width_min, title_width);
 
     m_init_node_width_height();
-    // init_ports();
 
     // 选中投影
     m_shadow = new QGraphicsDropShadowEffect();
@@ -256,7 +265,7 @@ void NodeWidget::m_init_node_width_height()
         }
     }
 
-    m_node_width = std::max(m_node_width, max_in_port_width + max_out_port_width + m_port_space);
+    m_node_width = std::max(m_node_width, max_in_port_width + max_out_port_width + m_port_space) + 20;
 
     m_node_height = std::max(out_height, in_height) + m_title_height + 10;
     m_node_height = std::max(m_node_height, m_node_height_min);

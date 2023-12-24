@@ -12,9 +12,9 @@ Node *create_node()
 SplitImageNode::SplitImageNode(const std::string &node_name, Type node_type) : Node(node_name, node_type)
 {
 
-    add_port(0, "Image", Port::InputForce, Port::Image);
+    add_port(0, "im", Port::InputForce, Port::Image);
 
-    add_port(0, "Image", Port::Output, Port::Image);
+    add_port(0, "im", Port::Output, Port::Image);
     add_port(1, "R", Port::Output, Port::Image);
     add_port(2, "G", Port::Output, Port::Image);
     add_port(3, "B", Port::Output, Port::Image);

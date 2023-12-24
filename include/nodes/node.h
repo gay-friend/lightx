@@ -41,7 +41,8 @@ public:
     virtual void execute() = 0;
 
     Node(const std::string &node_name, Type node_type);
-    void add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);
+    Port *add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);
+    void add_pair_port(uint id, const std::string &name, Port::DataType data_type, bool in_force = false);
     bool can_run();
     void run();
     /// @brief 获取端口
@@ -63,6 +64,26 @@ public:
     /// @brief 是否开始节点
     /// @return bool
     bool is_start_node();
+    template <typename T>
+    void set_port_value(uint id, Port::Type type, T value)
+    {
+        auto port = get_port(id, type);
+        if (port == nullptr)
+        {
+            return;
+        }
+        port->set_value(value);
+    }
+    template <typename T>
+    T get_port_value(uint id, Port::Type type)
+    {
+        auto port = get_port(id, type);
+        if (port == nullptr)
+        {
+            return T();
+        }
+        return port->get_value<T>();
+    }
 
     STATE state{NORMAL};
     /// @brief 节点类型

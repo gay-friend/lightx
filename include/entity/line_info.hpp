@@ -24,8 +24,8 @@ public:
     }
     void delete_line()
     {
-        port1->is_connected = false;
-        port2->is_connected = false;
+        port1->disconnect();
+        port2->disconnect();
         delete line;
         line = nullptr;
     }

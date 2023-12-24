@@ -26,6 +26,18 @@ public:
     Port(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     QRectF boundingRect() const;
     virtual QPointF get_port_pos();
+    virtual void connect(Port *port);
+    virtual void disconnect();
+    template <typename T>
+    void set_value(T value)
+    {
+        m_data_ref->setValue(QVariant::fromValue(value));
+    }
+    template <typename T>
+    T get_value()
+    {
+        return m_data_ref->value<T>();
+    }
 
     std::string node_id;
     uint id;
@@ -33,12 +45,15 @@ public:
     Type type;
     DataType data_type;
     QColor color{"#ffffff"};
-    QVariant data;
     bool is_connected{false};
     int icon_size{15};
     int port_width;
 
 protected:
+    void m_reset_data(Port *port);
+
+    QVariant *m_data_ref;
+    QVariant *m_data;
     inline static std::map<DataType, QColor> COLOR_MAP{
         {Port::Float, QColor("#2fFF09")},
         {Port::Int, QColor("#2fFF09")},
@@ -63,6 +78,7 @@ public:
 class OutputPort : public Port
 {
 public:
+    OutputPort(InputPort *in_port, const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     OutputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     virtual QPointF get_port_pos() override;

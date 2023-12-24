@@ -12,10 +12,9 @@ Node *create_node()
 ThresholdNode::ThresholdNode(const std::string &node_name, Type node_type) : Node(node_name, node_type)
 {
 
-    add_port(0, "image", Port::InputForce, Port::Image);
+    add_pair_port(0, "im", Port::Image, true);
     add_port(1, "th", Port::Input, Port::Int);
 
-    add_port(0, "image", Port::Output, Port::Image);
     add_port(1, "out im", Port::Output, Port::Image);
 }
 
@@ -27,32 +26,28 @@ void ThresholdNode::uninit()
 }
 void ThresholdNode::execute()
 {
-    // auto in_val = get_port_value(0, Port::InputForce);
-    // // 将图片直接映射到输出
-    // set_port_value(0, in_val, Port::Output);
+    auto mat = get_port_value<cv::Mat>(0, Port::InputForce);
+    auto th = get_port_value<int>(0, Port::Input);
 
-    // auto mat = in_val.value<cv::Mat>();
-    // if (mat.empty())
-    // {
-    //     std::cout << "ThresholdNode get empty input exit..." << std::endl;
-    //     return;
-    // }
+    if (mat.empty())
+    {
+        std::cout << "ThresholdNode get empty input exit..." << std::endl;
+        return;
+    }
 
-    // cv::Mat gray;
-    // if (mat.type() == CV_8UC1)
-    // {
-    //     gray = mat;
-    // }
-    // else
-    // {
-    //     cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
-    // }
+    cv::Mat gray;
+    if (mat.type() == CV_8UC1)
+    {
+        gray = mat;
+    }
+    else
+    {
+        cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
+    }
 
-    // cv::Mat bin_mat;
-    // cv::threshold(gray, bin_mat, threshold, 255, cv::THRESH_BINARY);
-    // set_port_value(1, QVariant::fromValue(bin_mat), Port::Output);
-    // // 设置显示图片
-    // image = mat_to_qimage(bin_mat).copy();
+    cv::Mat bin_mat;
+    cv::threshold(gray, bin_mat, th, 255, cv::THRESH_BINARY);
+    set_port_value(1, Port::Output, bin_mat);
 
-    // std::cout << "ThresholdNode running..." << std::endl;
+    std::cout << "ThresholdNode running. th: " << th << std::endl;
 }
