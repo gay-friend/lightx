@@ -31,13 +31,14 @@ public:
     template <typename T>
     void set_value(T value)
     {
-        m_data_ref->setValue(QVariant::fromValue(value));
+        m_parent == nullptr ? m_data->setValue(QVariant::fromValue(value)) : m_parent->set_value(value);
     }
     template <typename T>
     T get_value()
     {
-        return m_data_ref->value<T>();
+        return m_parent == nullptr ? m_data->value<T>() : m_parent->get_value<T>();
     }
+    void set_parent(Port *port);
 
     std::string node_id;
     uint id;
@@ -50,9 +51,7 @@ public:
     int port_width;
 
 protected:
-    void m_reset_data(Port *port);
-
-    QVariant *m_data_ref;
+    Port *m_parent{nullptr};
     QVariant *m_data;
     inline static std::map<DataType, QColor> COLOR_MAP{
         {Port::Float, QColor("#2fFF09")},
@@ -78,7 +77,6 @@ public:
 class OutputPort : public Port
 {
 public:
-    OutputPort(InputPort *in_port, const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     OutputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     virtual QPointF get_port_pos() override;

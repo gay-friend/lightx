@@ -11,7 +11,6 @@ Port::Port(const std::string &node_id, uint id, const std::string &name, Type ty
     m_label_size = QFontMetrics(m_font).horizontalAdvance(QString::fromStdString(name));
     port_width = icon_size + m_label_size;
     m_data = new QVariant();
-    m_data_ref = m_data;
 }
 QPointF Port::get_port_pos()
 {
@@ -26,7 +25,10 @@ QRectF Port::boundingRect() const
 void Port::disconnect()
 {
     is_connected = false;
-    m_data_ref = m_data;
+    if (type != Output)
+    {
+        set_parent(nullptr);
+    }
 }
 void Port::connect(Port *port)
 {
@@ -37,21 +39,13 @@ void Port::connect(Port *port)
     is_connected = true;
     port->is_connected = true;
 
-    if (type != Output)
-    {
-        port->m_data_ref = m_data_ref;
-    }
-    else
-    {
-        m_data_ref = port->m_data_ref;
-    }
+    // this is input?
+    type != Output ? set_parent(port) : port->set_parent(this);
 }
 
-void Port::m_reset_data(Port *port)
+void Port::set_parent(Port *port)
 {
-    delete m_data;
-    m_data = port->m_data;
-    m_data_ref = port->m_data_ref;
+    m_parent = port;
 }
 
 void InputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -130,11 +124,6 @@ void OutputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 OutputPort::OutputPort(const std::string &node_id, uint id, const std::string &name, Type type, DataType data_type)
     : Port(node_id, id, name, type, data_type)
 {
-}
-OutputPort::OutputPort(InputPort *in_port, const std::string &node_id, uint id, const std::string &name, Type type, DataType data_type)
-    : Port(node_id, id, name, type, data_type)
-{
-    m_reset_data(in_port);
 }
 
 QPointF OutputPort::get_port_pos()

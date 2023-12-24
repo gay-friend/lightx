@@ -28,7 +28,8 @@ void Node::add_pair_port(uint id, const std::string &name, Port::DataType data_t
 {
     auto type = in_force ? Port::InputForce : Port::Input;
     auto in_port = new InputPort(uuid, id, name, type, data_type);
-    auto out_port = new OutputPort(in_port, uuid, id, name, Port::Output, data_type);
+    auto out_port = new OutputPort(uuid, id, name, Port::Output, data_type);
+    out_port->set_parent(in_port);
     m_ports.push_back(in_port);
     m_ports.push_back(out_port);
 }
