@@ -20,6 +20,7 @@ public:
         Int,
         Bool,
         String,
+        File,
         Image,
     };
 
@@ -55,10 +56,11 @@ protected:
     QVariant *m_data;
     inline static std::map<DataType, QColor> COLOR_MAP{
         {Port::Float, QColor("#2fFF09")},
-        {Port::Int, QColor("#2fFF09")},
-        {Port::Bool, QColor("#2fFF09")},
-        {Port::String, QColor("#2fFF09")},
+        {Port::Int, QColor("#008000")},
+        {Port::Bool, QColor("#ff0606")},
+        {Port::String, QColor("#be0ba0")},
         {Port::Image, QColor("#00BFFF")},
+        {Port::File, QColor("#b92ee6")},
     };
     QPen m_pen_default;
     QBrush m_brush_default;

@@ -2,7 +2,7 @@
 file(GLOB_RECURSE SRCS ${ROOT}/src/*.cpp
                        ${ROOT}/src/*.hpp
                        ${ROOT}/include/entity/*.hpp
-                       ${ROOT}/include/qwidgets/*.hpp
+                    #    ${ROOT}/include/qwidgets/*.hpp
                        ${ROOT}/include/widgets/*.h
                        )
 
