@@ -38,7 +38,7 @@ Node::Node(const std::string &node_name, Type node_type) : name(node_name), type
 {
     uuid = generate_uuid();
 }
-bool Node::can_run()
+bool Node::can_run() const
 {
     for (auto port : m_ports)
     {
@@ -56,7 +56,7 @@ void Node::run()
     is_executed = true;
 }
 
-Port *Node::get_port(uint port_id, Port::Type port_type)
+Port *Node::get_port(uint port_id, Port::Type port_type) const
 {
     for (auto port : m_ports)
     {
@@ -67,12 +67,12 @@ Port *Node::get_port(uint port_id, Port::Type port_type)
     }
     return nullptr;
 }
-std::vector<Port *> Node::get_all_ports()
+std::vector<Port *> Node::get_all_ports() const
 {
     return m_ports;
 }
 
-Port *Node::get_port_by_pos(QPointF pos)
+Port *Node::get_port_by_pos(QPointF pos) const
 {
     for (auto port : m_ports)
     {
@@ -84,7 +84,7 @@ Port *Node::get_port_by_pos(QPointF pos)
     return nullptr;
 }
 
-std::vector<Port *> Node::get_connected_in_ports()
+std::vector<Port *> Node::get_connected_in_ports() const
 {
     std::vector<Port *> ports;
     for (auto port : m_ports)
@@ -97,7 +97,7 @@ std::vector<Port *> Node::get_connected_in_ports()
     return ports;
 }
 
-std::vector<Port *> Node::get_connected_out_port()
+std::vector<Port *> Node::get_connected_out_port() const
 {
     std::vector<Port *> ports;
     for (auto port : m_ports)
@@ -110,7 +110,7 @@ std::vector<Port *> Node::get_connected_out_port()
     return ports;
 }
 
-bool Node::is_start_node()
+bool Node::is_start_node() const
 {
     for (auto port : m_ports)
     {

@@ -26,7 +26,7 @@ public:
 
     Port(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     QRectF boundingRect() const;
-    virtual QPointF get_port_pos();
+    virtual QPointF get_port_pos() const;
     virtual void connect(Port *port);
     virtual void disconnect();
     template <typename T>
@@ -35,7 +35,7 @@ public:
         m_parent == nullptr ? m_data->setValue(QVariant::fromValue(value)) : m_parent->set_value(value);
     }
     template <typename T>
-    T get_value()
+    T get_value() const
     {
         return m_parent == nullptr ? m_data->value<T>() : m_parent->get_value<T>();
     }
@@ -81,5 +81,5 @@ class OutputPort : public Port
 public:
     OutputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    virtual QPointF get_port_pos() override;
+    virtual QPointF get_port_pos() const override;
 };

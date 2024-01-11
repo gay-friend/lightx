@@ -213,7 +213,7 @@ void GraphicsView::keyReleaseEvent(QKeyEvent *event)
     {
     case Qt::Key_F5:
         // 执行节点
-        node_manager.run();
+        node_manager.run_once();
         break;
     case Qt::Key_Delete:
         // 删除选中

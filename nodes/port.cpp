@@ -12,7 +12,7 @@ Port::Port(const std::string &node_id, uint id, const std::string &name, Type ty
     port_width = icon_size + m_label_size;
     m_data = new QVariant();
 }
-QPointF Port::get_port_pos()
+QPointF Port::get_port_pos() const
 {
     auto pos = scenePos();
     return QPointF(pos.x() + 0.25 * icon_size, pos.y() + 0.5 * icon_size);
@@ -127,7 +127,7 @@ OutputPort::OutputPort(const std::string &node_id, uint id, const std::string &n
 {
 }
 
-QPointF OutputPort::get_port_pos()
+QPointF OutputPort::get_port_pos()const
 {
     auto pos = scenePos();
     return QPointF(pos.x() + m_label_size + 0.5 * icon_size, pos.y() + 0.5 * icon_size);

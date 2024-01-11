@@ -4,6 +4,7 @@ file(GLOB_RECURSE SRCS ${ROOT}/src/*.cpp
                        ${ROOT}/include/entity/*.hpp
                     #    ${ROOT}/include/qwidgets/*.hpp
                        ${ROOT}/include/widgets/*.h
+                       ${ROOT}/include/model/*.h
                        )
 
 foreach(file ${SRCS})

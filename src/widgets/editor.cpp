@@ -54,10 +54,10 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
 
 void EditorWindow::on_action_run()
 {
-    m_editor->node_manager.run();
+    m_editor->node_manager.run_once();
 }
 
-int run_ui(int argc, char* argv[])
+int run_ui(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationName("LightX");

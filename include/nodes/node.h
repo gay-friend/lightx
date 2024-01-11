@@ -43,27 +43,27 @@ public:
     Node(const std::string &node_name, Type node_type);
     Port *add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);
     void add_pair_port(uint id, const std::string &name, Port::DataType data_type, bool in_force = false);
-    bool can_run();
+    bool can_run() const;
     void run();
     /// @brief 获取端口
     /// @param port_id 端口ID
     /// @param port_type
     /// @return 端口
-    Port *get_port(uint port_id, Port::Type port_type);
-    std::vector<Port *> get_all_ports();
+    Port *get_port(uint port_id, Port::Type port_type) const;
+    std::vector<Port *> get_all_ports() const;
     /// @brief 获取端口
     /// @param pos 坐标
     /// @return 端口
-    Port *get_port_by_pos(QPointF pos);
+    Port *get_port_by_pos(QPointF pos) const;
     /// @brief 获取已连接输入端口
     /// @return 端口列表
-    std::vector<Port *> get_connected_in_ports();
+    std::vector<Port *> get_connected_in_ports()const;
     /// @brief 获取已连接输出端口
     /// @return 端口列表
-    std::vector<Port *> get_connected_out_port();
+    std::vector<Port *> get_connected_out_port()const;
     /// @brief 是否开始节点
     /// @return bool
-    bool is_start_node();
+    bool is_start_node() const;
     template <typename T>
     void set_port_value(uint id, Port::Type type, T value)
     {
@@ -75,7 +75,7 @@ public:
         port->set_value(value);
     }
     template <typename T>
-    T get_port_value(uint id, Port::Type type)
+    T get_port_value(uint id, Port::Type type) const
     {
         auto port = get_port(id, type);
         if (port == nullptr)

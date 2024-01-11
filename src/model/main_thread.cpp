@@ -1,13 +1,16 @@
 #include "model/main_thread.h"
 
-NodeManager::NodeManager(QGraphicsView *view) : m_view(view)
+NodeManager::NodeManager(QGraphicsView *view) : m_view(view), QThread(nullptr)
 {
     lib_manager = new LibManager("lib", "create_node");
 }
 NodeManager::~NodeManager()
 {
 }
-std::vector<Port *> NodeManager::get_another_ports(Port *port)
+void NodeManager::run()
+{
+}
+std::vector<Port *> NodeManager::get_another_ports(Port *port) const
 {
     std::vector<Port *> result;
     for (auto line : m_lines_info)
@@ -19,7 +22,7 @@ std::vector<Port *> NodeManager::get_another_ports(Port *port)
     }
     return result;
 }
-Port *NodeManager::get_port(QPoint pos)
+Port *NodeManager::get_port(QPoint pos) const
 {
     QGraphicsItem *clicked_item = m_view->itemAt(pos);
     if (clicked_item != nullptr)
@@ -33,7 +36,7 @@ NodeWidget *NodeManager::get_node(Port *port)
 {
     return m_nodes_map.count(port->node_id) == 0 ? nullptr : m_nodes_map[port->node_id];
 }
-NodeWidget *NodeManager::get_node(QPoint pos)
+NodeWidget *NodeManager::get_node(QPoint pos) const
 {
     QGraphicsItem *clicked_item = m_view->itemAt(pos);
     if (clicked_item != nullptr)
@@ -47,7 +50,7 @@ NodeWidget *NodeManager::get_node(QPoint pos)
     return nullptr;
 }
 
-std::vector<LineInfo> NodeManager::get_lines_info(Port *port)
+std::vector<LineInfo> NodeManager::get_lines_info(Port *port) const
 {
     std::vector<LineInfo> lines;
     std::copy_if(m_lines_info.begin(), m_lines_info.end(), std::back_inserter(lines), [port](const LineInfo &line)
@@ -64,7 +67,7 @@ Port *NodeManager::get_port(const std::string &node_id, int port_id, Port::Type 
     return node_widget->node->get_port(port_id, port_type);
 }
 
-bool NodeManager::port_type_check(Port *port1, Port *port2)
+bool NodeManager::port_type_check(Port *port1, Port *port2) const
 {
     switch (port1->type)
     {
@@ -78,7 +81,7 @@ bool NodeManager::port_type_check(Port *port1, Port *port2)
         return false;
     }
 }
-bool NodeManager::port_monotonicity_check(Port *port1, Port *port2)
+bool NodeManager::port_monotonicity_check(Port *port1, Port *port2) const
 {
     auto is_input = port1->type == Port::Input || port1->type == Port::InputForce;
     if (port1->is_connected && is_input)
@@ -98,7 +101,7 @@ bool NodeManager::port_monotonicity_check(Port *port1, Port *port2)
         return true;
     }
 }
-bool NodeManager::port_data_type_check(Port *port1, Port *port2)
+bool NodeManager::port_data_type_check(Port *port1, Port *port2) const
 {
     return port1->data_type == port2->data_type;
 }
@@ -147,7 +150,7 @@ void NodeManager::add_relation(LineInfo info)
 {
     m_lines_info.push_back(info);
 }
-bool NodeManager::can_run()
+bool NodeManager::can_run() const
 {
     for (auto item : m_nodes_map)
     {
@@ -158,7 +161,7 @@ bool NodeManager::can_run()
     }
     return true;
 }
-void NodeManager::run()
+void NodeManager::run_once()
 {
     if (!can_run())
     {
@@ -268,6 +271,7 @@ void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_
             port_connect(port1, port2);
         }
     }
+    update_all_node();
 }
 void NodeManager::port_connect(Port *port1, Port *port2)
 {
@@ -293,7 +297,7 @@ void NodeManager::port_reconnect(Port *port1, Port *port2)
     }
     port_connect(port1, port2);
 }
-bool NodeManager::port_type_is_convertion(Port *port1, Port *port2)
+bool NodeManager::port_type_is_convertion(Port *port1, Port *port2) const
 {
     return false;
 }
@@ -316,6 +320,7 @@ void NodeManager::delete_port_connect(Port *port)
             out_port->disconnect();
         }
     }
+    update_all_node();
 }
 void NodeManager::delete_selected()
 {
@@ -364,7 +369,7 @@ void NodeManager::delete_selected()
     }
 }
 
-std::vector<std::string> NodeManager::get_all_node_names()
+std::vector<std::string> NodeManager::get_all_node_names() const
 {
     return lib_manager->names;
 }
