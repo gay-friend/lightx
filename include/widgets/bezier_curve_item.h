@@ -16,6 +16,7 @@ public:
     /// @param start_point 起始点
     /// @param end_point 终止点
     BezierCurveItem(const QPointF &start_point, const QPointF &end_point);
+    ~BezierCurveItem();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     /// @brief 更新
     /// @param start_point 起始点

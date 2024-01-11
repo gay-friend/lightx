@@ -30,6 +30,7 @@ void Port::disconnect()
         set_parent(nullptr);
     }
 }
+
 void Port::connect(Port *port)
 {
     if (port == this)

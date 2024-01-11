@@ -1,5 +1,4 @@
 #pragma once
-#include <unordered_set>
 #include <QGraphicsView>
 #include <vector>
 
@@ -17,7 +16,7 @@ public:
     /// @brief 通过端口获取与该端口连接的所有端口信息
     /// @param port 端口
     /// @return 端口信息列表(与输出端口连接可能有多个)
-    std::vector<Port *> get_other_ports(Port *port);
+    std::vector<Port *> get_another_ports(Port *port);
     /// @brief 通过坐标获取端口信息
     /// @param pos 坐标
     /// @return 端口信息

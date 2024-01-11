@@ -5,7 +5,7 @@
 #include <QAction>
 #include <iostream>
 
-#include "model/node_manager.h"
+#include "model/main_thread.h"
 #include "widgets/bezier_curve_item.h"
 #include "widgets/scene.h"
 #include "widgets/tree_widget.h"

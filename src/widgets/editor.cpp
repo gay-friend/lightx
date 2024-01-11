@@ -56,3 +56,13 @@ void EditorWindow::on_action_run()
 {
     m_editor->node_manager.run();
 }
+
+int run_ui(int argc, char* argv[])
+{
+    QApplication app(argc, argv);
+    app.setApplicationName("LightX");
+    app.setApplicationDisplayName("LightX");
+    auto window = EditorWindow();
+    window.show();
+    return app.exec();
+}

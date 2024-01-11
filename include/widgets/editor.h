@@ -33,3 +33,5 @@ private:
     QWidget *m_left_sidebar;
     QVBoxLayout *m_left_layout;
 };
+
+int run_ui(int argc, char* argv[]);

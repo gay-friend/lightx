@@ -29,7 +29,7 @@ public:
     {
         /// @brief 空闲
         NORMAL,
-        /// @brief 运行钟
+        /// @brief 运行中
         RUNNING,
         /// @brief 已完成
         FINISHED,
@@ -108,9 +108,6 @@ public:
     NodeWidget(Node *node, QPointF pos = QPointF(0, 0));
     virtual ~NodeWidget();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    // /// @brief 鼠标按下事件
-    // /// @param event 时间源
-    // void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     /// @brief 鼠标移动事件
     /// @param event
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -141,8 +138,6 @@ private:
     QColor m_title_color;
     uint m_title_padding{5};
     QGraphicsTextItem *m_title_item;
-    /// @brief 节点ID计数
-    inline static uint m_node_id_count = 0;
     /// @brief 标题颜色字典
     inline static std::map<Node::Type, QColor> m_title_color_map{
         {Node::CameraNode, QColor("#f5232e")},
@@ -151,7 +146,7 @@ private:
         // {CameraNode, QColor("#4e90fe")},
     };
 signals:
-    void change(); // 节点改变信号
+    void on_change();      // 节点改变信号
 };
 
 std::string get_node_type_name(Node::Type type);

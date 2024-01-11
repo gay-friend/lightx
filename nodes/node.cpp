@@ -235,7 +235,7 @@ void NodeWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 void NodeWidget::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit change();
+    emit on_change();
     QGraphicsObject::mouseMoveEvent(event);
 }
 

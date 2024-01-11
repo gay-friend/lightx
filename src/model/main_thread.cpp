@@ -1,4 +1,4 @@
-#include "model/node_manager.h"
+#include "model/main_thread.h"
 
 NodeManager::NodeManager(QGraphicsView *view) : m_view(view)
 {
@@ -7,14 +7,14 @@ NodeManager::NodeManager(QGraphicsView *view) : m_view(view)
 NodeManager::~NodeManager()
 {
 }
-std::vector<Port *> NodeManager::get_other_ports(Port *port)
+std::vector<Port *> NodeManager::get_another_ports(Port *port)
 {
     std::vector<Port *> result;
-    for (auto info : m_lines_info)
+    for (auto line : m_lines_info)
     {
-        if (info.port1 == port || info.port2 == port)
+        if (line.is_line_port(port))
         {
-            result.push_back(info.get_other_port_info_by_port(port));
+            result.push_back(line.get_another_port(port));
         }
     }
     return result;
@@ -50,13 +50,8 @@ NodeWidget *NodeManager::get_node(QPoint pos)
 std::vector<LineInfo> NodeManager::get_lines_info(Port *port)
 {
     std::vector<LineInfo> lines;
-    for (auto info : m_lines_info)
-    {
-        if (info.port1 == port || info.port2 == port)
-        {
-            lines.push_back(info);
-        }
-    }
+    std::copy_if(m_lines_info.begin(), m_lines_info.end(), std::back_inserter(lines), [port](const LineInfo &line)
+                 { return line.is_line_port(port); });
     return lines;
 }
 Port *NodeManager::get_port(const std::string &node_id, int port_id, Port::Type port_type)
@@ -94,6 +89,10 @@ bool NodeManager::port_monotonicity_check(Port *port1, Port *port2)
     {
         return false;
     }
+    else if (port1->node_id == port2->node_id)
+    {
+        return false;
+    }
     else
     {
         return true;
@@ -119,9 +118,9 @@ void NodeManager::update_node(NodeWidget *node_widget)
     auto uuid = node_widget->node->uuid;
     for (auto info : m_lines_info)
     {
-        if (info.port1->node_id == uuid || info.port2->node_id == uuid)
+        if (info.in_port->node_id == uuid || info.out_port->node_id == uuid)
         {
-            info.line->update_point(info.port1->get_port_pos(), info.port2->get_port_pos());
+            info.line->update_point(info.in_port->get_port_pos(), info.out_port->get_port_pos());
         }
     }
 }
@@ -196,7 +195,7 @@ void NodeManager::node_run(std::vector<NodeWidget *> nodes)
         std::vector<NodeWidget *> parent_nodes;
         for (auto in_port_info : in_ports_info)
         {
-            for (auto other_port : get_other_ports(in_port_info))
+            for (auto other_port : get_another_ports(in_port_info))
             {
                 auto other_node = m_nodes_map[other_port->node_id];
                 if (other_node->node->is_executed)
@@ -226,7 +225,7 @@ void NodeManager::node_run(std::vector<NodeWidget *> nodes)
         std::vector<NodeWidget *> child_nodes;
         for (auto out_port : out_ports)
         {
-            for (auto in_port : get_other_ports(out_port))
+            for (auto in_port : get_another_ports(out_port))
             {
                 auto it = std::find_if(child_nodes.begin(), child_nodes.end(), [in_port](NodeWidget *node)
                                        { return in_port->node_id == node->node->uuid; });
@@ -253,7 +252,7 @@ void NodeManager::add_node(NodeWidget *node)
     {
         m_nodes_map[node->node->uuid] = node;
         m_view->scene()->addItem(node);
-        QObject::connect(node, &NodeWidget::change, [this, node]()
+        QObject::connect(node, &NodeWidget::on_change, [this, node]()
                          { update_selected_node(); });
     }
 }
@@ -300,14 +299,22 @@ bool NodeManager::port_type_is_convertion(Port *port1, Port *port2)
 }
 void NodeManager::delete_port_connect(Port *port)
 {
-    auto it = std::find_if(m_lines_info.begin(), m_lines_info.end(), [port](const LineInfo &lineinfo)
-                           { return lineinfo.port1 == port || lineinfo.port2 == port; });
+    std::vector<LineInfo> lines;
+    std::copy_if(m_lines_info.begin(), m_lines_info.end(), std::back_inserter(lines), [port](const LineInfo &lineinfo)
+                 { return lineinfo.is_line_port(port); });
 
-    if (it != m_lines_info.end())
+    for (auto line : lines)
     {
-        (*it).delete_line();
-        // 删除找到连线信息
-        m_lines_info.erase(it);
+        auto out_port = line.out_port;
+        m_lines_info.erase(std::find(m_lines_info.begin(), m_lines_info.end(), line));
+        line.clear();
+
+        auto it = std::find_if(m_lines_info.begin(), m_lines_info.end(), [out_port](auto lineinfo)
+                               { return lineinfo.is_line_port(out_port); });
+        if (it == m_lines_info.end())
+        {
+            out_port->disconnect();
+        }
     }
 }
 void NodeManager::delete_selected()
@@ -352,8 +359,7 @@ void NodeManager::delete_selected()
                                { return i.line == line; });
         if (it != m_lines_info.end())
         {
-            (*it).delete_line();
-            m_lines_info.erase(it);
+            delete_port_connect((*it).in_port);
         }
     }
 }
