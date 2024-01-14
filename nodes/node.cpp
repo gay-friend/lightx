@@ -34,7 +34,7 @@ void Node::add_pair_port(uint id, const std::string &name, Port::DataType data_t
     m_ports.push_back(out_port);
 }
 
-Node::Node(const std::string &node_name, Type node_type) : name(node_name), type(node_type)
+Node::Node(const std::string &node_name, Type node_type) : QObject(nullptr), name(node_name), type(node_type)
 {
     uuid = generate_uuid();
 }
@@ -50,9 +50,30 @@ bool Node::can_run() const
     }
     return true;
 }
+void Node::reset()
+{
+    is_executed = false;
+    state == STATE::NORMAL;
+    emit on_run_reset();
+}
 void Node::run()
 {
-    execute();
+    try
+    {
+        state = STATE::RUNNING;
+        emit on_run_start();
+        sleep(1);
+        execute();
+        sleep(1);
+        state = STATE::FINISHED;
+        emit on_run_complete();
+    }
+    catch (const std::exception &e)
+    {
+        state = STATE::ERROR;
+        emit on_run_error();
+        std::cerr << e.what() << '\n';
+    }
     is_executed = true;
 }
 
@@ -122,7 +143,7 @@ bool Node::is_start_node() const
     return true;
 }
 
-NodeWidget::NodeWidget(Node *node, QPointF pos) : node(node)
+NodeWidget::NodeWidget(QGraphicsItem *parent, Node *node, QPointF pos) : node(node), QGraphicsObject(parent)
 {
     // set pos, flags
     setPos(pos);
@@ -159,6 +180,16 @@ NodeWidget::NodeWidget(Node *node, QPointF pos) : node(node)
         auto y = m_title_height + port->id * (m_port_padding + port->icon_size) + m_port_padding;
         port->setPos(x, y);
     }
+
+    // 连接信号槽
+    QObject::connect(node, &Node::on_run_start, [this]()
+                     { this->m_shadow->setColor("#aacfcfee");setGraphicsEffect(m_shadow); });
+    QObject::connect(node, &Node::on_run_complete, [this]()
+                     { this->m_shadow->setColor("#c4c");setGraphicsEffect(m_shadow); });
+    QObject::connect(node, &Node::on_run_error, [this]()
+                     { this->m_shadow->setColor("#aadd1515");setGraphicsEffect(m_shadow); });
+    QObject::connect(node, &Node::on_run_reset, [this]()
+                     { this->m_shadow->setColor("#00000000");setGraphicsEffect(m_shadow); });
 }
 NodeWidget::~NodeWidget() {}
 void NodeWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -170,15 +201,19 @@ void NodeWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     {
     case Node::NORMAL:
         m_shadow->setColor("#00000000");
+        setGraphicsEffect(m_shadow);
         break;
     case Node::RUNNING:
         m_shadow->setColor("#aacfcfee");
+        setGraphicsEffect(m_shadow);
         break;
     case Node::FINISHED:
         m_shadow->setColor("#c4c");
+        setGraphicsEffect(m_shadow);
         break;
     case Node::ERROR:
         m_shadow->setColor("#aadd1515");
+        setGraphicsEffect(m_shadow);
         break;
 
     default:

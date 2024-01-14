@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <map>
 #include <vector>
+#include <unistd.h>
 
 #include "widgets/bezier_curve_item.h"
 #include "nodes/port.h"
@@ -17,8 +18,15 @@
 #endif
 #endif
 
-class Node
+class Node : public QObject
 {
+    Q_OBJECT
+signals:
+    void on_run_start();
+    void on_run_complete();
+    void on_run_error();
+    void on_run_reset();
+
 public:
     enum Type
     {
@@ -45,6 +53,7 @@ public:
     void add_pair_port(uint id, const std::string &name, Port::DataType data_type, bool in_force = false);
     bool can_run() const;
     void run();
+    void reset();
     /// @brief 获取端口
     /// @param port_id 端口ID
     /// @param port_type
@@ -57,10 +66,10 @@ public:
     Port *get_port_by_pos(QPointF pos) const;
     /// @brief 获取已连接输入端口
     /// @return 端口列表
-    std::vector<Port *> get_connected_in_ports()const;
+    std::vector<Port *> get_connected_in_ports() const;
     /// @brief 获取已连接输出端口
     /// @return 端口列表
-    std::vector<Port *> get_connected_out_port()const;
+    std::vector<Port *> get_connected_out_port() const;
     /// @brief 是否开始节点
     /// @return bool
     bool is_start_node() const;
@@ -105,7 +114,7 @@ public:
     /// @param node_name 节点名
     /// @param node_type 节点类型
     /// @param pos 坐标
-    NodeWidget(Node *node, QPointF pos = QPointF(0, 0));
+    NodeWidget(QGraphicsItem *parent, Node *node, QPointF pos = QPointF(0, 0));
     virtual ~NodeWidget();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     /// @brief 鼠标移动事件
@@ -146,7 +155,7 @@ private:
         // {CameraNode, QColor("#4e90fe")},
     };
 signals:
-    void on_change();      // 节点改变信号
+    void on_change(); // 节点改变信号
 };
 
 std::string get_node_type_name(Node::Type type);

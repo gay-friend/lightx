@@ -21,7 +21,7 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     m_left_layout->setContentsMargins(0, 0, 0, 0);
     auto left_bar = new SidebarWidget(nullptr, "", false);
     auto model_tree = new NodeListWidget(this, true);
-    model_tree->build_tree(m_editor->node_manager.lib_manager->func_map);
+    model_tree->build_tree(m_editor->main_thread->lib_manager->func_map);
     left_bar->add_comp("模块库", model_tree, false, 10);
 
     m_left_layout->addWidget(left_bar);
@@ -54,7 +54,8 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
 
 void EditorWindow::on_action_run()
 {
-    m_editor->node_manager.run_once();
+    // m_editor->main_thread->run_once();
+    m_editor->main_thread->start();
 }
 
 int run_ui(int argc, char *argv[])

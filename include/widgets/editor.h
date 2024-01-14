@@ -34,4 +34,4 @@ private:
     QVBoxLayout *m_left_layout;
 };
 
-int run_ui(int argc, char* argv[]);
+int run_ui(int argc, char *argv[]);

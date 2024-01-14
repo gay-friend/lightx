@@ -9,6 +9,7 @@ NodeManager::~NodeManager()
 }
 void NodeManager::run()
 {
+    run_once();
 }
 std::vector<Port *> NodeManager::get_another_ports(Port *port) const
 {
@@ -168,6 +169,10 @@ void NodeManager::run_once()
         std::cout << "please connect all force in port." << std::endl;
         return;
     }
+    // 重置已执行标志
+    nofe_reflush();
+    // 刷新场景
+    m_view->scene()->update();
     // 找到开始节点
     std::vector<NodeWidget *> start_nodes;
     for (auto item : m_nodes_map)
@@ -179,11 +184,6 @@ void NodeManager::run_once()
     }
     // 执行开始节点
     node_run(start_nodes);
-
-    // 重置已执行标志
-    nofe_reflush();
-    // 刷新场景
-    m_view->scene()->update();
 }
 void NodeManager::node_run(std::vector<NodeWidget *> nodes)
 {
@@ -246,7 +246,7 @@ void NodeManager::nofe_reflush()
 {
     for (auto node_widget : m_nodes_map)
     {
-        node_widget.second->node->is_executed = false;
+        node_widget.second->node->reset();
     }
 }
 void NodeManager::add_node(NodeWidget *node)
@@ -271,7 +271,7 @@ void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_
             port_connect(port1, port2);
         }
     }
-    update_all_node();
+    m_view->scene()->update();
 }
 void NodeManager::port_connect(Port *port1, Port *port2)
 {
@@ -320,7 +320,7 @@ void NodeManager::delete_port_connect(Port *port)
             out_port->disconnect();
         }
     }
-    update_all_node();
+    m_view->scene()->update();
 }
 void NodeManager::delete_selected()
 {

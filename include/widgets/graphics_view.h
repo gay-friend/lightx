@@ -43,7 +43,7 @@ public:
     void contextMenuEvent(QContextMenuEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     /// @brief 节点管理器
-    NodeManager node_manager{this};
+    NodeManager *main_thread{nullptr};
 
 private:
     /// @brief 拖动中？
