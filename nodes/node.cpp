@@ -62,7 +62,6 @@ void Node::run()
     {
         state = STATE::RUNNING;
         emit on_run_start();
-        sleep(1);
         execute();
         sleep(1);
         state = STATE::FINISHED;

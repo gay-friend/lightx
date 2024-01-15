@@ -28,7 +28,7 @@ public:
     virtual void init() override;
     /// @brief 反初始化
     virtual void uninit() override;
-    std::string dir{"/home/lightx/cpp-learn/lightx/assets/images"};
+    std::string dir{"/home/lightx/lightx/assets/images"};
 
 private:
     std::vector<std::string> m_image_files;

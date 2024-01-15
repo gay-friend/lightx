@@ -17,6 +17,7 @@ foreach(file ${LIBS})
 endforeach()
 
 include_directories(${PROJECT_SOURCE_DIR}/include) # 添加头文件
+include_directories(/usr/local/include/opencv4)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/nodes node)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)

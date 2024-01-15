@@ -26,6 +26,7 @@ void ThresholdNode::uninit()
 }
 void ThresholdNode::execute()
 {
+    std::cout << "================";
     auto mat = get_port_value<cv::Mat>(0, Port::InputForce);
     auto th = get_port_value<int>(0, Port::Input);
 
