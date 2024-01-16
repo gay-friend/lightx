@@ -32,15 +32,7 @@ public:
     template <typename T>
     void set_value(T value)
     {
-        cv::imwrite("port.png", value);
-        if (m_parent == nullptr)
-        {
-            m_data->setValue(QVariant::fromValue<T>(value));
-        }
-        else
-        {
-            m_parent->set_value(value);
-        }
+        m_parent == nullptr ? m_data->setValue(QVariant::fromValue(value)) : m_parent->set_value(value);
     }
     template <typename T>
     T get_value() const
