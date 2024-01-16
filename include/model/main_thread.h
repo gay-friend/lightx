@@ -5,6 +5,7 @@
 
 #include "entity/line_info.hpp"
 #include "utils/utils.h"
+#include "nodes/node_widget.h"
 
 class NodeManager : public QThread
 {
