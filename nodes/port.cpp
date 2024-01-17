@@ -86,6 +86,10 @@ void Port::connect(Port *port)
     // this is input?
     type != Output ? set_parent(port) : port->set_parent(this);
 }
+bool Port::readonly()
+{
+    return m_parent != nullptr;
+}
 
 void Port::set_parent(Port *port)
 {

@@ -34,6 +34,7 @@ public:
     virtual QPointF get_port_pos() const;
     virtual void connect(Port *port);
     virtual void disconnect();
+    bool readonly();
     template <typename T>
     void set_value(T value)
     {
