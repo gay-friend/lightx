@@ -140,7 +140,30 @@ bool Node::is_start_node() const
     }
     return true;
 }
+json Node::to_json()
+{
+    json obj;
+    std::vector<json> port_objs;
+    for (auto port : m_ports)
+    {
+        port_objs.push_back(port->to_json());
+    }
+    obj["ports"] = port_objs;
+    obj["uuid"] = this->uuid;
+    obj["name"] = name;
+    obj["type"] = type;
 
+    return obj;
+}
+void Node::load_from_json(json config)
+{
+    this->uuid = config["uuid"];
+    for (json port_obj : config["ports"])
+    {
+        auto port = get_port(port_obj["id"], port_obj["type"]);
+        port->load_from_json(port_obj);
+    }
+}
 std::string get_node_type_name(Node::Type type)
 {
     switch (type)

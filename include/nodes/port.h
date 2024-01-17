@@ -4,6 +4,9 @@
 #include <QPainter>
 #include <QGraphicsItem>
 #include <opencv2/opencv.hpp>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 class Port : public QGraphicsItem
 {
@@ -25,6 +28,8 @@ public:
     };
 
     Port(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
+    json to_json();
+    void load_from_json(json config);
     QRectF boundingRect() const;
     virtual QPointF get_port_pos() const;
     virtual void connect(Port *port);

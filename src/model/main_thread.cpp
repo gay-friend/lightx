@@ -3,12 +3,14 @@
 NodeManager::NodeManager(QGraphicsView *view) : m_view(view), QThread(nullptr)
 {
     lib_manager = new LibManager("lib", "create_node");
+    load_workspace("workspace.json");
 }
 NodeManager::~NodeManager()
 {
 }
 void NodeManager::run()
 {
+    save_workspace("workspace.json");
     run_once();
 }
 std::vector<Port *> NodeManager::get_another_ports(Port *port) const
@@ -249,6 +251,79 @@ void NodeManager::nofe_reflush()
         node_widget.second->node->reset();
     }
 }
+void NodeManager::save_workspace(const std::string &file)
+{
+    json workspace;
+    std::vector<json> widget_objs;
+    for (auto item : m_nodes_map)
+    {
+        json w_obj;
+        auto node_widget = item.second;
+        w_obj["x"] = node_widget->pos().x();
+        w_obj["y"] = node_widget->pos().y();
+        w_obj["node"] = node_widget->node->to_json();
+        widget_objs.push_back(w_obj);
+    }
+    workspace["widgets"] = widget_objs;
+
+    std::vector<json> line_objs;
+    for (auto line : m_lines_info)
+    {
+        json line_obj;
+        line_obj["target_port_id"] = line.in_port->id;
+        line_obj["target_port_type"] = line.in_port->type;
+        line_obj["target_node_id"] = line.in_port->node_id;
+
+        line_obj["origin_port_id"] = line.out_port->id;
+        line_obj["origin_port_type"] = line.out_port->type;
+        line_obj["origin_node_id"] = line.out_port->node_id;
+        std::cout << line_obj << std::endl;
+        line_objs.push_back(line_obj);
+    }
+    workspace["lines"] = line_objs;
+
+    std::ofstream f;
+    f.open(file);
+    f << workspace;
+    f.close();
+}
+void NodeManager::load_workspace(const std::string &file)
+{
+    try
+    {
+        std::ifstream f(file);
+        json workspace = json::parse(f);
+        for (json obj : workspace["widgets"])
+        {
+            json node_obj = obj["node"];
+
+            auto node_type_name = get_node_type_name(node_obj["type"]);
+            auto node_name = node_obj["name"];
+            auto node = lib_manager->create_node(node_type_name, node_name);
+            node->load_from_json(node_obj);
+            auto node_widget = new NodeWidget(nullptr, node, QPointF(obj["x"], obj["y"]));
+            add_node(node_widget);
+        }
+
+        for (json line_obj : workspace["lines"])
+        {
+            std::cout << line_obj << std::endl;
+
+            std::string target_node_id = line_obj["target_node_id"];
+            int target_port_id = line_obj["target_port_id"];
+            Port::Type target_port_type = line_obj["target_port_type"];
+
+            std::string origin_node_id = line_obj["origin_node_id"];
+            int origin_port_id = line_obj["origin_port_id"];
+            Port::Type origin_port_type = line_obj["origin_port_type"];
+            port_connect(origin_node_id, origin_port_id, origin_port_type, target_node_id, target_port_id, target_port_type);
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
 void NodeManager::add_node(NodeWidget *node)
 {
     if (node != nullptr)
@@ -264,7 +339,7 @@ void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_
     auto port1 = get_port(orgin_node_id, orgin_port_id, origin_port_type);
     auto port2 = get_port(target_node_id, target_port_id, target_port_type);
 
-    if (port1 != nullptr && port2 == nullptr)
+    if (port1 != nullptr && port2 != nullptr)
     {
         if (port_type_check(port1, port2) && port_monotonicity_check(port1, port2) && port_data_type_check(port1, port2))
         {

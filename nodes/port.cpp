@@ -12,6 +12,49 @@ Port::Port(const std::string &node_id, uint id, const std::string &name, Type ty
     port_width = icon_size + m_label_size;
     m_data = new QVariant();
 }
+json Port::to_json()
+{
+    json config;
+    config["id"] = this->id;
+    config["node_id"] = this->node_id;
+    config["name"] = this->name;
+    config["type"] = this->type;
+    config["data_type"] = this->data_type;
+    switch (data_type)
+    {
+    case Port::Int:
+        config["value"] = this->get_value<int>();
+        break;
+    case Port::Float:
+        config["value"] = this->get_value<float>();
+        break;
+    case Port::String:
+        config["value"] = this->get_value<std::string>();
+        break;
+    case Port::File:
+        config["value"] = this->get_value<std::string>();
+        break;
+    case Port::Bool:
+        config["value"] = this->get_value<bool>();
+        break;
+
+    default:
+        break;
+    }
+    return config;
+}
+void Port::load_from_json(json config)
+{
+    this->id = config["id"];
+    this->node_id = config["node_id"];
+    this->name = config["name"];
+    this->type = config["type"];
+    this->data_type = config["data_type"];
+    if (config.contains("value"))
+    {
+        this->set_value(config["value"]);
+    }
+}
 QPointF Port::get_port_pos() const
 {
     auto pos = scenePos();
@@ -127,7 +170,7 @@ OutputPort::OutputPort(const std::string &node_id, uint id, const std::string &n
 {
 }
 
-QPointF OutputPort::get_port_pos()const
+QPointF OutputPort::get_port_pos() const
 {
     auto pos = scenePos();
     return QPointF(pos.x() + m_label_size + 0.5 * icon_size, pos.y() + 0.5 * icon_size);

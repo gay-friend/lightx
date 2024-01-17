@@ -5,6 +5,9 @@
 
 #include "nodes/port.h"
 #include "utils/uuid.h"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 #ifndef NODE_API
 #if __WIN32__
@@ -43,6 +46,9 @@ public:
     virtual void init() = 0;
     virtual void uninit() = 0;
     virtual void execute() = 0;
+
+    json to_json();
+    void load_from_json(json config);
 
     Node(const std::string &node_name, Type node_type);
     Port *add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);

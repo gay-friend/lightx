@@ -2,6 +2,7 @@
 #include <QGraphicsView>
 #include <QThread>
 #include <vector>
+#include <fstream>
 
 #include "entity/line_info.hpp"
 #include "utils/utils.h"
@@ -14,6 +15,8 @@ public:
     /// @brief 构造函数
     /// @param view 画布
     NodeManager(QGraphicsView *view);
+    void save_workspace(const std::string &file);
+    void load_workspace(const std::string &file);
     /// @brief 析构函数
     virtual ~NodeManager();
     /// @brief 通过端口获取与该端口连接的所有端口信息
