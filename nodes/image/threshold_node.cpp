@@ -13,9 +13,12 @@ ThresholdNode::ThresholdNode(const std::string &node_name, Type node_type) : Nod
 {
 
     add_pair_port(0, "im", Port::Image, true);
-    add_port(1, "th", Port::Input, Port::Int);
+    auto port = add_port(1, "th", Port::Input, Port::Int);
+    port->set_value(100);
+    std::cout << port->get_value<int>() << std::endl;
 
     add_port(1, "out im", Port::Output, Port::Image);
+    m_build_widget();
 }
 
 void ThresholdNode::init()
@@ -26,9 +29,10 @@ void ThresholdNode::uninit()
 }
 void ThresholdNode::execute()
 {
-    std::cout << "================";
+
     auto mat = get_port_value<cv::Mat>(0, Port::InputForce);
-    auto th = get_port_value<int>(0, Port::Input);
+    auto th = get_port_value<int>(1, Port::Input);
+    std::cout << get_port(1, Port::Input)->get_value<int>() << std::endl;
 
     if (mat.empty())
     {

@@ -18,6 +18,7 @@ SplitImageNode::SplitImageNode(const std::string &node_name, Type node_type) : N
     add_port(1, "R", Port::Output, Port::Image);
     add_port(2, "G", Port::Output, Port::Image);
     add_port(3, "B", Port::Output, Port::Image);
+    m_build_widget();
 }
 
 void SplitImageNode::init()

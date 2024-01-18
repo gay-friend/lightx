@@ -277,7 +277,6 @@ void NodeManager::save_workspace(const std::string &file)
         line_obj["origin_port_id"] = line.out_port->id;
         line_obj["origin_port_type"] = line.out_port->type;
         line_obj["origin_node_id"] = line.out_port->node_id;
-        std::cout << line_obj << std::endl;
         line_objs.push_back(line_obj);
     }
     workspace["lines"] = line_objs;
@@ -307,8 +306,6 @@ void NodeManager::load_workspace(const std::string &file)
 
         for (json line_obj : workspace["lines"])
         {
-            std::cout << line_obj << std::endl;
-
             std::string target_node_id = line_obj["target_node_id"];
             int target_port_id = line_obj["target_port_id"];
             Port::Type target_port_type = line_obj["target_port_type"];

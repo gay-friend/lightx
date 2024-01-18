@@ -2,10 +2,18 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <QLineEdit>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QIntValidator>
+#include <QDoubleValidator>
+#include <QCheckBox>
+#include <nlohmann/json.hpp>
 
 #include "nodes/port.h"
 #include "utils/uuid.h"
-#include <nlohmann/json.hpp>
+#include "utils/image_utils.hpp"
 
 using json = nlohmann::json;
 
@@ -17,7 +25,7 @@ using json = nlohmann::json;
 #endif
 #endif
 
-class Node : public QObject
+class Node : public QWidget
 {
     Q_OBJECT
 signals:
@@ -25,6 +33,9 @@ signals:
     void on_run_complete();
     void on_run_error();
     void on_run_reset();
+
+protected:
+    void m_build_widget();
 
 public:
     enum Type
@@ -50,7 +61,7 @@ public:
     json to_json();
     void load_from_json(json config);
 
-    Node(const std::string &node_name, Type node_type);
+    Node(const std::string &node_name, Type node_type, QWidget *parent = nullptr);
     Port *add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);
     void add_pair_port(uint id, const std::string &name, Port::DataType data_type, bool in_force = false);
     bool can_run() const;

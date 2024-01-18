@@ -1,7 +1,7 @@
 #include "nodes/port.h"
 
 Port::Port(const std::string &node_id, uint id, const std::string &name, Type type, DataType data_type)
-    : node_id(node_id), id(id), name(name), type(type), data_type(data_type), QGraphicsItem(nullptr)
+    : node_id(node_id), id(id), name(name), type(type), data_type(data_type), QGraphicsObject(nullptr)
 {
     color = COLOR_MAP[data_type];
     m_pen_default = QPen(color);
@@ -20,17 +20,16 @@ json Port::to_json()
     config["name"] = this->name;
     config["type"] = this->type;
     config["data_type"] = this->data_type;
-    switch (data_type)
+    switch (this->data_type)
     {
     case Port::Int:
         config["value"] = this->get_value<int>();
+        std::cout << config << std::endl;
         break;
     case Port::Float:
         config["value"] = this->get_value<float>();
         break;
     case Port::String:
-        config["value"] = this->get_value<std::string>();
-        break;
     case Port::File:
         config["value"] = this->get_value<std::string>();
         break;
@@ -68,9 +67,10 @@ QRectF Port::boundingRect() const
 void Port::disconnect()
 {
     is_connected = false;
-    if (type != Output)
+    if (type != Output && m_parent != nullptr)
     {
-        set_parent(nullptr);
+        QObject::disconnect(m_parent, &Port::on_value_change, this, &Port::on_value_change);
+        m_parent = nullptr;
     }
 }
 
@@ -90,10 +90,34 @@ bool Port::readonly()
 {
     return m_parent != nullptr;
 }
+bool Port::is_pair()
+{
+    return this->type == Port::Output && m_parent != nullptr;
+}
 
 void Port::set_parent(Port *port)
 {
+    QObject::connect(port, &Port::on_value_change, this, &Port::on_value_change);
     m_parent = port;
+}
+void Port::add_child(Port *port)
+{
+    if (port != nullptr)
+    {
+        this->m_childs.push_back(port);
+    }
+}
+void Port::remove_child(Port *port)
+{
+    auto it = std::find(this->m_childs.begin(), this->m_childs.end(), port);
+    if (it != this->m_childs.end())
+    {
+        m_childs.erase(it);
+    }
+}
+QVariant *Port::get_data()
+{
+    return m_parent != nullptr ? m_parent->m_data : this->m_data;
 }
 
 void InputPort::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

@@ -14,6 +14,7 @@ ImageConvertNode::ImageConvertNode(const std::string &node_name, Type node_type)
     add_pair_port(0, "im", Port::Image, true);
 
     add_port(1, "res im", Port::Output, Port::Image);
+    m_build_widget();
 }
 
 void ImageConvertNode::init()

@@ -34,9 +34,64 @@ void Node::add_pair_port(uint id, const std::string &name, Port::DataType data_t
     m_ports.push_back(out_port);
 }
 
-Node::Node(const std::string &node_name, Type node_type) : QObject(nullptr), name(node_name), type(node_type)
+Node::Node(const std::string &node_name, Type node_type, QWidget *parent) : QWidget(parent), name(node_name), type(node_type)
 {
     uuid = generate_uuid();
+}
+void Node::m_build_widget()
+{
+    auto *v_layout = new QVBoxLayout();
+    for (auto port : m_ports)
+    {
+        if (port->data_type == Port::Image)
+        {
+            continue;
+        }
+
+        if (port->data_type != Port::Bool)
+        {
+            auto *h_layout = new QHBoxLayout();
+            auto label = new QLabel(QString::fromStdString(port->name));
+            h_layout->addWidget(label);
+            auto edit = new QLineEdit();
+            edit->setReadOnly(port->readonly());
+            edit->setText(port->get_data()->toString());
+            if (port->data_type == Port::Int)
+            {
+                edit->setValidator(new QIntValidator());
+            }
+            else if (port->data_type == Port::Float)
+            {
+                edit->setValidator(new QDoubleValidator());
+            }
+
+            h_layout->addWidget(edit);
+            v_layout->addLayout(h_layout);
+        }
+        else
+        {
+            auto check = new QCheckBox(QString::fromStdString(port->name));
+            v_layout->addWidget(check);
+        }
+    }
+
+    for (auto port : m_ports)
+    {
+        if (port->data_type != Port::Image || port->is_pair())
+        {
+            continue;
+        }
+        auto label = new QLabel(QString::fromStdString(port->name));
+        auto im_label = new QLabel();
+        QObject::connect(port, &Port::on_value_change, [im_label](QVariant *value)
+                         { 
+                            auto mat = value->value<cv::Mat>();
+                            auto qim = mat_to_qimage(mat); 
+                            im_label->setPixmap(QPixmap::fromImage(qim)); });
+        v_layout->addWidget(label);
+        v_layout->addWidget(im_label);
+    }
+    this->setLayout(v_layout);
 }
 bool Node::can_run() const
 {
@@ -161,7 +216,10 @@ void Node::load_from_json(json config)
     for (json port_obj : config["ports"])
     {
         auto port = get_port(port_obj["id"], port_obj["type"]);
-        port->load_from_json(port_obj);
+        if (port != nullptr)
+        {
+            port->load_from_json(port_obj);
+        }
     }
 }
 std::string get_node_type_name(Node::Type type)

@@ -8,8 +8,12 @@
 
 using json = nlohmann::json;
 
-class Port : public QGraphicsItem
+class Port : public QGraphicsObject
 {
+    Q_OBJECT
+signals:
+    void on_value_change(QVariant *value);
+
 public:
     enum Type
     {
@@ -35,10 +39,19 @@ public:
     virtual void connect(Port *port);
     virtual void disconnect();
     bool readonly();
+    bool is_pair();
     template <typename T>
     void set_value(T value)
     {
-        m_parent == nullptr ? m_data->setValue(QVariant::fromValue(value)) : m_parent->set_value(value);
+        if (m_parent == nullptr)
+        {
+            m_data->setValue(QVariant::fromValue(value));
+            emit on_value_change(m_data);
+        }
+        else
+        {
+            m_parent->set_value(value);
+        }
     }
     template <typename T>
     T get_value() const
@@ -46,6 +59,9 @@ public:
         return m_parent == nullptr ? m_data->value<T>() : m_parent->get_value<T>();
     }
     void set_parent(Port *port);
+    void add_child(Port *port);
+    void remove_child(Port *port);
+    QVariant *get_data();
 
     std::string node_id;
     uint id;
@@ -59,6 +75,7 @@ public:
 
 protected:
     Port *m_parent{nullptr};
+    std::vector<Port *> m_childs;
     QVariant *m_data;
     inline static std::map<DataType, QColor> COLOR_MAP{
         {Port::Float, QColor("#2fFF09")},

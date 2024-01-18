@@ -22,6 +22,8 @@ public:
     /// @brief 边界矩形
     /// @return QRectF
     QRectF boundingRect() const;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+
     Node *node;
 
 private:
