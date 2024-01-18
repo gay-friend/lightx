@@ -58,4 +58,5 @@ private:
     };
 signals:
     void on_change(); // 节点改变信号
+    void on_node_select(QWidget *w);
 };

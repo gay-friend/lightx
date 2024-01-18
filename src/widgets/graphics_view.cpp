@@ -5,7 +5,6 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
     // 设置框选模式
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
                    QPainter::SmoothPixmapTransform | QPainter::LosslessImageRendering);
-
     // 设置缓冲背景 加速渲染
     // setCacheMode(QGraphicsView::CacheNone);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 隐藏水平滚动条
@@ -24,8 +23,10 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
     // 添加连续预览线到场景
     scene->addItem(&m_preview_line);
     m_preview_line.setVisible(false);
-
-    main_thread = new NodeManager(this);
+}
+void GraphicsView::set_manager(NodeManager *manager)
+{
+    main_thread = manager;
 }
 
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)

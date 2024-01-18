@@ -20,10 +20,9 @@ public:
 
 public slots:
     void on_action_run();
+    void set_right_dock(QWidget *w);
 
 private:
-    QDockWidget *m_right_dock;
-    QDockWidget *m_left_dock;
     QToolBar *m_tool_bar;
     /// @brief 剪贴板
     QClipboard *m_clipboard;
@@ -31,6 +30,7 @@ private:
     QSplitter *m_splitter;
     QSplitter *m_center_splitter;
     QWidget *m_left_sidebar;
+    QDockWidget *m_right_dock;
     QVBoxLayout *m_left_layout;
 };
 

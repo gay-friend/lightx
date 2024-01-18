@@ -12,6 +12,9 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
 
     // 编辑器设置，位置在中间，占比例至少80 %
     m_editor = new GraphicsView(this);
+    auto manager = new NodeManager(m_editor);
+    m_editor->set_manager(manager);
+    QObject::connect(manager, &NodeManager::on_item_select, this, &EditorWindow::set_right_dock);
 
     // 初始化菜单栏
 
@@ -32,9 +35,12 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     m_center_splitter->addWidget(m_editor);
     m_center_splitter->setSizes({800, 200});
 
+    m_right_dock = new QDockWidget();
+
     m_splitter = new QSplitter(Qt::Horizontal, this);
     m_splitter->addWidget(m_left_sidebar);
     m_splitter->addWidget(m_center_splitter);
+    m_splitter->addWidget(m_right_dock);
     m_splitter->setSizes({250, 1500, 250});
     setCentralWidget(m_splitter);
 
@@ -56,6 +62,12 @@ void EditorWindow::on_action_run()
 {
     // m_editor->main_thread->run_once();
     m_editor->main_thread->start();
+}
+
+void EditorWindow::set_right_dock(QWidget *w)
+{
+    m_right_dock->setWidget(w);
+    // this->m_right_dock->setWidget(dynamic_cast<QWidget *>(w));
 }
 
 int run_ui(int argc, char *argv[])

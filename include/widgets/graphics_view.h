@@ -16,7 +16,8 @@ class GraphicsView : public QGraphicsView
 public:
     /// @brief 构造函数
     /// @param parent 父窗体
-    GraphicsView(QWidget *parent = nullptr);
+    GraphicsView(QWidget *parent);
+    void set_manager(NodeManager *manager);
     /// @brief 鼠标滚轮事件
     /// @param event 事件源
     void wheelEvent(QWheelEvent *event) override;

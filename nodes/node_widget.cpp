@@ -136,7 +136,7 @@ void NodeWidget::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 }
 void NodeWidget::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    this->node->show();
+    emit on_node_select(this->node);
     QGraphicsObject::mousePressEvent(event);
 }
 QRectF NodeWidget::boundingRect() const
