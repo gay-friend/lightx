@@ -13,7 +13,12 @@ NodeInfo get_node_info()
 CameraNode::CameraNode(const std::string &node_name, Type node_type) : Node(node_name, node_type)
 {
     add_port(0, "im", Port::Output, Port::Image);
+    auto port = add_port(0, "path", Port::Input, Port::File);
+    port->set_value<std::string>("/home/lightx/lightx/assets/images");
     m_build_widget();
+
+    auto dir = port->get_value<std::string>();
+    std::cout << dir << std::endl;
 
     fs::path path(dir);
     if (!fs::exists(path))

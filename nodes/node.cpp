@@ -56,6 +56,7 @@ void Node::m_build_widget()
             auto edit = new QLineEdit();
             edit->setReadOnly(port->readonly());
             edit->setText(port->get_data()->toString());
+            std::cout << port->get_value<std::string>() << std::endl;
             if (port->data_type == Port::Int)
             {
                 edit->setValidator(new QIntValidator());
