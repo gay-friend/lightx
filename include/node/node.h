@@ -11,7 +11,7 @@
 #include <nlohmann/json.hpp>
 
 #include "node/port.h"
-#include "utils/uuid.h"
+#include "utils/uuid.hpp"
 #include "utils/image_utils.hpp"
 
 using json = nlohmann::json;

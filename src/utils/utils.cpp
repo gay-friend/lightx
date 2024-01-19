@@ -1,7 +1,7 @@
 #include "utils/utils.h"
 namespace fs = std::filesystem;
 
-func_create_node *load_lib(std::string file, const char *func_name, void **handle, NodeInfo *info)
+func_create_node *load_lib(const char *file, const char *func_name, void **handle, NodeInfo *info)
 {
 #if _WIN64
     wchar_t wtext[100];
@@ -19,12 +19,12 @@ func_create_node *load_lib(std::string file, const char *func_name, void **handl
 #else
 
     // 加载动态库
-    *handle = dlopen(file.c_str(), RTLD_LAZY);
+    *handle = dlopen(file, RTLD_LAZY);
     // 获取函数指针
     auto func_p = new func_create_node;
     auto func_get_name_p = new func_get_lib_name;
     *func_get_name_p = (func_get_lib_name)dlsym(*handle, "get_node_info");
-    info = (*func_get_name_p)();
+    *info = *(*func_get_name_p)();
     delete func_get_name_p;
 
     *func_p = (func_create_node)dlsym(*handle, func_name);
@@ -53,7 +53,7 @@ void LibManager::load()
     }
     for (auto it : fs::directory_iterator(m_dir))
     {
-        auto file = it.path().string();
+        auto file = it.path().c_str();
         void **handle = new (void *);
         std::cout << "Loading " << file << std::endl;
         auto info = new NodeInfo;

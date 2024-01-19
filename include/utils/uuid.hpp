@@ -1,6 +1,11 @@
-#include "utils/uuid.h"
+#pragma once
 
-std::string generate_uuid()
+#include <random>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+
+inline std::string generate_uuid()
 {
     std::random_device rd;
     std::mt19937 gen(rd());

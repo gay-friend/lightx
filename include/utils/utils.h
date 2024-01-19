@@ -19,7 +19,7 @@
 /// @param handle 库句柄
 /// @param info 节点信息
 /// @return
-func_create_node *load_lib(std::string file, const char *func_name, void **handle, NodeInfo *info);
+func_create_node *load_lib(const char* file, const char *func_name, void **handle, NodeInfo *info);
 
 /// @brief 动态库加载管理
 class LibManager
