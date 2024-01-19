@@ -9,11 +9,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 list(APPEND CMAKE_PREFIX_PATH ~/Qt/6.5.3/gcc_64)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-find_package(OpenCV REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED node.cpp node_widget.cpp port.cpp ${ROOT}/include/nodes/port.h ${ROOT}/include/nodes/node.h ${ROOT}/include/nodes/node_widget.h)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS} ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})
 
 add_subdirectory(camera)
 add_subdirectory(image)

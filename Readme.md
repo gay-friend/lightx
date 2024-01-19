@@ -33,3 +33,5 @@ https://github.com/ganleiboy/CMakeTutorial
 QObject::connect(node, &NodeWidget::on_change, [this, node]()
                     { update_all_node(); });
 ```
+linux编译opencv
+`cmake .. -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D BUILD_opencv_world=ON`
