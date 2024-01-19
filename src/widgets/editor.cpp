@@ -13,12 +13,11 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     // 编辑器设置，位置在中间，占比例至少80 %
     m_editor = new GraphicsView(this);
     auto manager = new NodeManager(m_editor);
+    QObject::connect(m_editor, &GraphicsView::on_select_change, this, &EditorWindow::set_right_dock);
     m_editor->set_manager(manager);
-    QObject::connect(manager, &NodeManager::on_item_select, this, &EditorWindow::set_right_dock);
-
     // 初始化菜单栏
 
-    // 初始化右侧边栏
+    // 初始化侧边栏
     m_left_sidebar = new QWidget(this);
     m_left_layout = new QVBoxLayout(m_left_sidebar);
     m_left_layout->setContentsMargins(0, 0, 0, 0);
@@ -26,7 +25,6 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     auto model_tree = new NodeListWidget(this, true);
     model_tree->build_tree(m_editor->main_thread->lib_manager->func_map);
     left_bar->add_comp("模块库", model_tree, false, 10);
-
     m_left_layout->addWidget(left_bar);
 
     // 设置布局的初始大小
@@ -36,6 +34,8 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     m_center_splitter->setSizes({800, 200});
 
     m_right_dock = new QDockWidget();
+    // 禁用关闭按钮
+    m_right_dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     m_splitter = new QSplitter(Qt::Horizontal, this);
     m_splitter->addWidget(m_left_sidebar);
@@ -60,14 +60,12 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
 
 void EditorWindow::on_action_run()
 {
-    // m_editor->main_thread->run_once();
     m_editor->main_thread->start();
 }
 
 void EditorWindow::set_right_dock(QWidget *w)
 {
     m_right_dock->setWidget(w);
-    // this->m_right_dock->setWidget(dynamic_cast<QWidget *>(w));
 }
 
 int run_ui(int argc, char *argv[])

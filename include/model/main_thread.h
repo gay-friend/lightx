@@ -11,8 +11,6 @@
 class NodeManager : public QThread
 {
     Q_OBJECT
-signals:
-    void on_item_select(QWidget *w);
 
 public:
     /// @brief 构造函数

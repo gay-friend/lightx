@@ -44,11 +44,7 @@ NodeWidget *NodeManager::get_node(QPoint pos) const
     QGraphicsItem *clicked_item = m_view->itemAt(pos);
     if (clicked_item != nullptr)
     {
-        NodeWidget *node = dynamic_cast<NodeWidget *>(clicked_item);
-        if (node != nullptr)
-        {
-            return node;
-        }
+        return dynamic_cast<NodeWidget *>(clicked_item);
     }
     return nullptr;
 }
@@ -329,7 +325,6 @@ void NodeManager::add_node(NodeWidget *node)
         m_view->scene()->addItem(node);
         QObject::connect(node, &NodeWidget::on_change, [this, node]()
                          { update_selected_node(); });
-        QObject::connect(node, &NodeWidget::on_node_select, this, &NodeManager::on_item_select);
     }
 }
 void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_id, Port::Type origin_port_type, const std::string &target_node_id, int target_port_id, Port::Type target_port_type)

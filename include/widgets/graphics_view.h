@@ -13,6 +13,10 @@
 /// @brief 画布
 class GraphicsView : public QGraphicsView
 {
+    Q_OBJECT
+signals:
+    void on_select_change(QWidget *w);
+
 public:
     /// @brief 构造函数
     /// @param parent 父窗体
@@ -47,6 +51,7 @@ public:
     NodeManager *main_thread{nullptr};
 
 private:
+    std::string m_selected_node_id;
     /// @brief 拖动中？
     bool m_is_drawing = false;
     /// @brief 画布拖动
@@ -59,10 +64,9 @@ private:
     QPoint m_mouse_current_pos;
     /// @brief 鼠标点击位置
     QPoint m_mouse_clike_pos;
-    /// @brief  鼠标释放位置
-    QPoint m_mouse_release_pos;
     /// @brief 缩放
     float m_zoom_factor{1.05}; // 缩放
     float m_view_scale{1.0};
     float m_last_scale{0.0};
+    Scene* m_scene;
 };

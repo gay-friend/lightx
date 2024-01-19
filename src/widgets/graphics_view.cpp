@@ -6,7 +6,7 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
                    QPainter::SmoothPixmapTransform | QPainter::LosslessImageRendering);
     // 设置缓冲背景 加速渲染
-    // setCacheMode(QGraphicsView::CacheNone);
+    setCacheMode(QGraphicsView::CacheNone);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 隐藏水平滚动条
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 隐藏垂直滚动条
 
@@ -18,10 +18,10 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
     setAcceptDrops(true);
 
     // 创建场景
-    auto *scene = new Scene();
-    setScene(scene);
+    m_scene = new Scene();
+    setScene(m_scene);
     // 添加连续预览线到场景
-    scene->addItem(&m_preview_line);
+    m_scene->addItem(&m_preview_line);
     m_preview_line.setVisible(false);
 }
 void GraphicsView::set_manager(NodeManager *manager)
@@ -110,16 +110,14 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
     // 不显示画线预览线
     m_preview_line.setVisible(false);
-    m_mouse_release_pos = event->pos();
-    Port *release_port;
-    Port *click_port;
+    auto release_port = main_thread->get_port(event->pos());
+    auto click_port = main_thread->get_port(m_mouse_clike_pos);
+    auto node = main_thread->get_node(event->pos());
 
     switch (event->button())
     {
     case Qt::LeftButton:
         // 尝试获取释放位置的端口信息
-        release_port = main_thread->get_port(m_mouse_release_pos);
-        click_port = main_thread->get_port(m_mouse_clike_pos);
 
         if (release_port != nullptr && m_is_drawing)
         {
@@ -144,6 +142,21 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
             {
                 main_thread->delete_port_connect(click_port);
             }
+        }
+        if (node != nullptr)
+        {
+            std::cout << node->node->uuid << std::endl;
+        }
+
+        if (release_port == nullptr && node != nullptr && this->m_selected_node_id != node->node->uuid)
+        {
+            this->m_selected_node_id = node->node->uuid;
+            emit this->on_select_change(node->node);
+        }
+        else if (release_port == nullptr && node == nullptr && this->m_selected_node_id != "")
+        {
+            this->m_selected_node_id = "";
+            emit this->on_select_change(nullptr);
         }
         break;
     case Qt::RightButton:

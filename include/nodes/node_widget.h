@@ -22,7 +22,6 @@ public:
     /// @brief 边界矩形
     /// @return QRectF
     QRectF boundingRect() const;
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
     Node *node;
 
@@ -58,5 +57,4 @@ private:
     };
 signals:
     void on_change(); // 节点改变信号
-    void on_node_select(QWidget *w);
 };
