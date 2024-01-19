@@ -84,7 +84,7 @@ public:
         QStackedWidget::addWidget(w);
         m_ani_infos.push_back(PopUpAniInfo(w, delta_x, delta_y, new QPropertyAnimation(w, "pos")));
     }
-    void setCurrentIndex(int index, bool duration = 250, bool pop_out = false,
+    void setCurrentIndex(int index, int duration = 250, bool pop_out = false,
                          bool show_next_directly = true, QEasingCurve easing = QEasingCurve::OutQuad)
     {
         if (index < 0 || index >= count())
@@ -126,7 +126,7 @@ public:
         m_ani->start();
         emit ani_start();
     }
-    void setCurrentWidget(QWidget *w, bool duration = 250, bool pop_out = false,
+    void setCurrentWidget(QWidget *w, int duration = 250, bool pop_out = false,
                           bool show_next_directly = true, QEasingCurve easing = QEasingCurve::OutQuad)
     {
         setCurrentIndex(indexOf(w), duration, pop_out, show_next_directly, easing);

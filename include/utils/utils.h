@@ -5,13 +5,13 @@
 #include <filesystem>
 #include <vector>
 #include <iostream>
-#if __WIN32__
-#include <libloaderapi.h>
+#if _WIN64
+#include <windows.h>
 #else
 #include <dlfcn.h>
 #endif
 
-#include "nodes/node.h"
+#include "node/node.h"
 
 /// @brief 加载动态库
 /// @param file 库路径
@@ -19,7 +19,7 @@
 /// @param handle 库句柄
 /// @param info 节点信息
 /// @return
-func_create_node *load_lib(const char *file, const char *func_name, void **handle, NodeInfo *info);
+func_create_node *load_lib(std::string file, const char *func_name, void **handle, NodeInfo *info);
 
 /// @brief 动态库加载管理
 class LibManager

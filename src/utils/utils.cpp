@@ -1,19 +1,30 @@
 #include "utils/utils.h"
 namespace fs = std::filesystem;
 
-func_create_node *load_lib(const char *file, const char *func_name, void **handle, NodeInfo *info)
+func_create_node *load_lib(std::string file, const char *func_name, void **handle, NodeInfo *info)
 {
-#if __WIN32__
-    handle * = LoadLibrary(file);
+#if _WIN64
+    wchar_t wtext[100];
+    mbstowcs(wtext, file.c_str(), file.length());
+    LPWSTR ptr = wtext;
+    auto hd = LoadLibrary(ptr);
+
+    auto func_p = new func_create_node;
+    *func_p = (func_create_node)GetProcAddress(hd, func_name);
+
+    auto info_func = (func_get_lib_name)GetProcAddress(hd, "get_node_info");
+    *info = info_func();
+
+    return func_p;
 #else
 
     // 加载动态库
-    *handle = dlopen(file, RTLD_LAZY);
+    *handle = dlopen(file.c_str(), RTLD_LAZY);
     // 获取函数指针
     auto func_p = new func_create_node;
     auto func_get_name_p = new func_get_lib_name;
     *func_get_name_p = (func_get_lib_name)dlsym(*handle, "get_node_info");
-    *info = (*func_get_name_p)();
+    info = (*func_get_name_p)();
     delete func_get_name_p;
 
     *func_p = (func_create_node)dlsym(*handle, func_name);
@@ -42,7 +53,7 @@ void LibManager::load()
     }
     for (auto it : fs::directory_iterator(m_dir))
     {
-        auto file = it.path().c_str();
+        auto file = it.path().string();
         void **handle = new (void *);
         std::cout << "Loading " << file << std::endl;
         auto info = new NodeInfo;

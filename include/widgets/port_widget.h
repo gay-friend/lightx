@@ -7,7 +7,7 @@
 #include <QValidator>
 #include <QPushButton>
 
-#include "nodes/port.h"
+#include "node/port.h"
 
 class PortWidget : public QWidget
 {

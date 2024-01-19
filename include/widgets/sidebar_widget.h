@@ -45,7 +45,7 @@ class SidebarWidget : public QWidget
 {
 public:
     SidebarWidget(QWidget *parent = nullptr, const std::string &title = "", bool is_stretch = false);
-    void add_comp(const std::string &comp_name, NodeListWidget *widget, bool collapsed = true, bool stretch = 10);
+    void add_comp(const std::string &comp_name, NodeListWidget *widget, bool collapsed = true, bool stretch = false);
 
     std::string title;
     bool is_stretch;

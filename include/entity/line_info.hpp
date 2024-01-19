@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nodes/port.h"
+#include "node/port.h"
 #include "widgets/bezier_curve_item.h"
 
 /// @brief 线信息

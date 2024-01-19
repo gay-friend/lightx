@@ -65,8 +65,8 @@ private:
     /// @brief 鼠标点击位置
     QPoint m_mouse_clike_pos;
     /// @brief 缩放
-    float m_zoom_factor{1.05}; // 缩放
+    float m_zoom_factor{1.05f}; // 缩放
     float m_view_scale{1.0};
     float m_last_scale{0.0};
-    Scene* m_scene;
+    Scene *m_scene;
 };
