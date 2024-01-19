@@ -4,16 +4,16 @@ namespace fs = std::filesystem;
 func_create_node *load_lib(const char *file, const char *func_name, void **handle, NodeInfo *info)
 {
 #if _WIN64
-    wchar_t wtext[100];
-    mbstowcs(wtext, file.c_str(), file.length());
-    LPWSTR ptr = wtext;
-    auto hd = LoadLibrary(ptr);
+    WCHAR wszClassName[256];
+    memset(wszClassName, 0, sizeof(wszClassName));
+    MultiByteToWideChar(CP_ACP, 0, file, (int)strlen(file) + 1, wszClassName, sizeof(wszClassName) / sizeof(wszClassName[0]));
+    auto hd = LoadLibrary(wszClassName);
 
     auto func_p = new func_create_node;
     *func_p = (func_create_node)GetProcAddress(hd, func_name);
 
     auto info_func = (func_get_lib_name)GetProcAddress(hd, "get_node_info");
-    *info = info_func();
+    *info = *info_func();
 
     return func_p;
 #else
@@ -53,7 +53,11 @@ void LibManager::load()
     }
     for (auto it : fs::directory_iterator(m_dir))
     {
+#ifdef _WIN64
+        auto file = it.path().string().c_str();
+#else
         auto file = it.path().c_str();
+#endif
         void **handle = new (void *);
         std::cout << "Loading " << file << std::endl;
         auto info = new NodeInfo;

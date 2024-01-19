@@ -40,32 +40,32 @@ NodeWidget::NodeWidget(QGraphicsItem *parent, Node *node, QPointF pos) : node(no
 
     // 连接信号槽
     QObject::connect(node, &Node::on_run_start, [this]()
-                     { this->m_paint_shadow(Node::RUNNING); });
+                     { this->m_paint_shadow(Node::STATE_RUNNING); });
     QObject::connect(node, &Node::on_run_complete, [this]()
-                     { this->m_paint_shadow(Node::FINISHED); });
+                     { this->m_paint_shadow(Node::STATE_FINISHED); });
     QObject::connect(node, &Node::on_run_error, [this]()
-                     { this->m_paint_shadow(Node::ERROR); });
+                     { this->m_paint_shadow(Node::STATE_ERROR); });
     QObject::connect(node, &Node::on_run_reset, [this]()
-                     { this->m_paint_shadow(Node::NORMAL); });
+                     { this->m_paint_shadow(Node::STATE_NORMAL); });
 }
 NodeWidget::~NodeWidget() {}
 void NodeWidget::m_paint_shadow(Node::STATE state)
 {
     switch (state)
     {
-    case Node::NORMAL:
+    case Node::STATE_NORMAL:
         m_shadow->setColor("#00000000");
         setGraphicsEffect(m_shadow);
         break;
-    case Node::RUNNING:
+    case Node::STATE_RUNNING:
         m_shadow->setColor("#aacfcfee");
         setGraphicsEffect(m_shadow);
         break;
-    case Node::FINISHED:
+    case Node::STATE_FINISHED:
         m_shadow->setColor("#c4c");
         setGraphicsEffect(m_shadow);
         break;
-    case Node::ERROR:
+    case Node::STATE_ERROR:
         m_shadow->setColor("#aadd1515");
         setGraphicsEffect(m_shadow);
         break;

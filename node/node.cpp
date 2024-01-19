@@ -76,11 +76,11 @@ void Node::m_build_widget()
         }
         auto label = new QLabel(QString::fromStdString(port->name));
         auto im_label = new QLabel();
-        QObject::connect(port, &Port::on_value_change, [im_label](QVariant *value)
-                         { 
-                            auto mat = value->value<cv::Mat>();
-                            auto qim = mat_to_qimage(mat); 
-                            im_label->setPixmap(QPixmap::fromImage(qim)); });
+        // QObject::connect(port, &Port::on_value_change, [im_label](QVariant *value)
+        //                  {
+        //                     auto mat = value->value<cv::Mat>();
+        //                     auto qim = mat_to_qimage(mat);
+        //                     im_label->setPixmap(QPixmap::fromImage(qim)); });
         v_layout->addWidget(label);
         v_layout->addWidget(im_label);
     }
@@ -101,22 +101,22 @@ bool Node::can_run() const
 void Node::reset()
 {
     is_executed = false;
-    state = STATE::NORMAL;
+    state = STATE::STATE_NORMAL;
     emit on_run_reset();
 }
 void Node::run()
 {
     try
     {
-        state = STATE::RUNNING;
+        state = STATE::STATE_RUNNING;
         emit on_run_start();
         execute();
-        state = STATE::FINISHED;
+        state = STATE::STATE_FINISHED;
         emit on_run_complete();
     }
     catch (const std::exception &e)
     {
-        state = STATE::ERROR;
+        state = STATE::STATE_ERROR;
         emit on_run_error();
         std::cerr << e.what() << '\n';
     }

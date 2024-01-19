@@ -12,7 +12,7 @@
 
 #include "node/port.h"
 #include "utils/uuid.hpp"
-#include "utils/image_utils.hpp"
+// #include "utils/image_utils.hpp"
 
 using json = nlohmann::json;
 
@@ -35,10 +35,10 @@ public:
     };
     enum STATE
     {
-        NORMAL,
-        RUNNING,
-        FINISHED,
-        ERROR
+        STATE_NORMAL,
+        STATE_RUNNING,
+        STATE_FINISHED,
+        STATE_ERROR
     };
 
     virtual void init() = 0;
@@ -94,7 +94,7 @@ public:
         return port->get_value<T>();
     }
 
-    STATE state{NORMAL};
+    STATE state{STATE_NORMAL};
     /// @brief 节点类型
     Type type;
     /// @brief 用户定义节点名字
