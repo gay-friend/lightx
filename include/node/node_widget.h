@@ -1,7 +1,7 @@
 #pragma once
 #include "node/node.h"
-#include "widgets/bezier_curve_item.h"
 
+#include <QGraphicsDropShadowEffect>
 #include <QPainter>
 
 /// @brief 节点接口类
