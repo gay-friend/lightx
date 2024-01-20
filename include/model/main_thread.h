@@ -11,11 +11,10 @@
 class NodeManager : public QThread
 {
     Q_OBJECT
-
 public:
     /// @brief 构造函数
     /// @param view 画布
-    NodeManager(QGraphicsView *view);
+    NodeManager();
     void save_workspace(const std::string &file);
     void load_workspace(const std::string &file);
     /// @brief 析构函数
@@ -24,21 +23,12 @@ public:
     /// @param port 端口
     /// @return 端口信息列表(与输出端口连接可能有多个)
     std::vector<Port *> get_another_ports(Port *port) const;
-    /// @brief 通过坐标获取端口信息
-    /// @param pos 坐标
-    /// @return 端口信息
-    Port *get_port(QPoint pos) const;
     /// @brief 通过节点ID 端口ID 端口类型获取端口信息
     /// @param node_id 节点ID
     /// @param port_id 端口ID
     /// @return 端口信息
     Port *get_port(const std::string &node_id, int port_id, Port::Type port_type);
     NodeWidget *get_node(Port *port);
-    /// @brief 通过坐标获取节点
-    /// @param pos 坐标
-    /// @return 节点
-    NodeWidget *get_node(QPoint pos) const;
-    // std::vector<Node *> get_child_nodes(Por);
     /// @brief 获取端口所有连线信息
     /// @param port 端口
     /// @return 连线信息列表
@@ -58,16 +48,11 @@ public:
     /// @param port2 端口2
     /// @return bool
     bool port_data_type_check(Port *port1, Port *port2) const;
-    /// @brief 更新坐标所在位置节点
-    /// @param pos 坐标
-    void update_node(QPoint pos);
     /// @brief 更新节点
     /// @param node 节点
     void update_node(NodeWidget *node);
     /// @brief 更新已选节点
     void update_selected_node();
-    /// @brief 更新所有节点
-    void update_all_node();
     /// @brief 添加连线
     /// @param info 线信息
     void add_relation(LineInfo info);
@@ -84,6 +69,7 @@ public:
     /// @brief 添加节点
     /// @param node 节点
     void add_node(NodeWidget *node);
+    void create_node(const std::string &node_type, const std::string &node_name, QPointF pos);
     /// @brief 端口连接
     /// @param orgin_node_id 原节点ID
     /// @param orgin_port_id 原端口ID
@@ -107,18 +93,20 @@ public:
     /// @param info 端口信息
     void delete_port_connect(Port *info);
     /// @brief 删除已选
-    void delete_selected();
+    void delete_selected(QList<QGraphicsItem *> select_items);
     /// @brief 包管理
     LibManager *lib_manager;
+    virtual void run() override;
 
-private:
+protected:
     /// @brief 线信息列表
     std::vector<LineInfo> m_lines_info;
     /// @brief 节点列表
     std::map<std::string, NodeWidget *> m_nodes_map;
-    /// @brief 画布
-    QGraphicsView *m_view;
 
-protected:
-    virtual void run() override;
+signals:
+    void on_scene_update();
+    void on_select_item_update();
+    void on_node_add(NodeWidget *);
+    void on_line_add(BezierCurveItem *);
 };

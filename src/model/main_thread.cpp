@@ -1,8 +1,8 @@
 #include "model/main_thread.h"
 
-NodeManager::NodeManager(QGraphicsView *view) : m_view(view), QThread(nullptr)
+NodeManager::NodeManager() : QThread(nullptr)
 {
-    lib_manager = new LibManager(".");
+    lib_manager = new LibManager("lib");
     load_workspace("workspace.json");
 }
 NodeManager::~NodeManager()
@@ -25,28 +25,10 @@ std::vector<Port *> NodeManager::get_another_ports(Port *port) const
     }
     return result;
 }
-Port *NodeManager::get_port(QPoint pos) const
-{
-    QGraphicsItem *clicked_item = m_view->itemAt(pos);
-    if (clicked_item != nullptr)
-    {
-        auto port = dynamic_cast<Port *>(clicked_item);
-        return port;
-    }
-    return nullptr;
-}
+
 NodeWidget *NodeManager::get_node(Port *port)
 {
     return m_nodes_map.count(port->node_id) == 0 ? nullptr : m_nodes_map[port->node_id];
-}
-NodeWidget *NodeManager::get_node(QPoint pos) const
-{
-    QGraphicsItem *clicked_item = m_view->itemAt(pos);
-    if (clicked_item != nullptr)
-    {
-        return dynamic_cast<NodeWidget *>(clicked_item);
-    }
-    return nullptr;
 }
 
 std::vector<LineInfo> NodeManager::get_lines_info(Port *port) const
@@ -105,11 +87,6 @@ bool NodeManager::port_data_type_check(Port *port1, Port *port2) const
     return port1->data_type == port2->data_type;
 }
 
-void NodeManager::update_node(QPoint pos)
-{
-    auto node = get_node(pos);
-    update_node(node);
-}
 void NodeManager::update_node(NodeWidget *node_widget)
 {
     if (node_widget == nullptr)
@@ -126,25 +103,7 @@ void NodeManager::update_node(NodeWidget *node_widget)
         }
     }
 }
-void NodeManager::update_selected_node()
-{
-    for (auto item : m_view->scene()->selectedItems())
-    {
-        update_node(dynamic_cast<NodeWidget *>(item));
-    }
-}
-void NodeManager::update_all_node()
-{
-    auto items = m_view->scene()->items();
-    std::vector<QGraphicsItem *> nodes;
-    std::copy_if(items.begin(), items.end(), std::back_inserter(nodes), [](QGraphicsItem *item)
-                 { return dynamic_cast<NodeWidget *>(item) != nullptr; });
 
-    for (auto node : nodes)
-    {
-        update_node(dynamic_cast<NodeWidget *>(node));
-    }
-}
 void NodeManager::add_relation(LineInfo info)
 {
     m_lines_info.push_back(info);
@@ -169,8 +128,6 @@ void NodeManager::run_once()
     }
     // 重置已执行标志
     nofe_reflush();
-    // 刷新场景
-    m_view->scene()->update();
     // 找到开始节点
     std::vector<NodeWidget *> start_nodes;
     for (auto item : m_nodes_map)
@@ -319,30 +276,43 @@ void NodeManager::load_workspace(const std::string &file)
 }
 void NodeManager::add_node(NodeWidget *node)
 {
+    m_nodes_map[node->node->uuid] = node;
+}
+void NodeManager::create_node(const std::string &node_type, const std::string &node_name, QPointF pos)
+{
+    auto node = this->lib_manager->create_node(node_type, node_name);
     if (node != nullptr)
     {
-        m_nodes_map[node->node->uuid] = node;
-        m_view->scene()->addItem(node);
-        QObject::connect(node, &NodeWidget::on_change, [this, node]()
-                         { update_selected_node(); });
+        auto node_widget = new NodeWidget(nullptr, node, pos);
+        this->add_node(node_widget);
+        emit on_node_add(node_widget);
     }
 }
 void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_id, Port::Type origin_port_type, const std::string &target_node_id, int target_port_id, Port::Type target_port_type)
 {
     auto port1 = get_port(orgin_node_id, orgin_port_id, origin_port_type);
     auto port2 = get_port(target_node_id, target_port_id, target_port_type);
-
-    if (port1 != nullptr && port2 != nullptr)
-    {
-        if (port_type_check(port1, port2) && port_monotonicity_check(port1, port2) && port_data_type_check(port1, port2))
-        {
-            port_connect(port1, port2);
-        }
-    }
-    m_view->scene()->update();
+    port_connect(port1, port2);
 }
 void NodeManager::port_connect(Port *port1, Port *port2)
 {
+    if (port1 == nullptr || port2 == nullptr)
+    {
+        return;
+    }
+    if (!this->port_type_check(port1, port2))
+    {
+        return;
+    }
+    if (!this->port_data_type_check(port1, port2))
+    {
+        return;
+    }
+    if (!this->port_monotonicity_check(port1, port2))
+    {
+        this->port_reconnect(port1, port2);
+        return;
+    }
     auto start = port1->get_port_pos();
     auto end = port2->get_port_pos();
     port1->connect(port2);
@@ -350,7 +320,7 @@ void NodeManager::port_connect(Port *port1, Port *port2)
     auto line = new BezierCurveItem(start, end);
     line->line_color = port1->color;
     LineInfo info(port1, port2, line);
-    m_view->scene()->addItem(line);
+    emit on_line_add(line);
     add_relation(info);
 }
 void NodeManager::port_reconnect(Port *port1, Port *port2)
@@ -388,13 +358,13 @@ void NodeManager::delete_port_connect(Port *port)
             out_port->disconnect();
         }
     }
-    m_view->scene()->update();
+    emit this->on_scene_update();
 }
-void NodeManager::delete_selected()
+void NodeManager::delete_selected(QList<QGraphicsItem *> select_items)
 {
     std::vector<BezierCurveItem *> lines;
     std::vector<NodeWidget *> nodes;
-    for (auto item : m_view->scene()->selectedItems())
+    for (auto item : select_items)
     {
         BezierCurveItem *line = dynamic_cast<BezierCurveItem *>(item);
         if (line != nullptr)

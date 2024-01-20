@@ -16,12 +16,15 @@ class GraphicsView : public QGraphicsView
     Q_OBJECT
 signals:
     void on_select_change(QWidget *w);
+public slots:
+    void update_selected_node();
+    void add_node(NodeWidget *node_widget);
+    void add_line(BezierCurveItem *line);
 
 public:
     /// @brief 构造函数
     /// @param parent 父窗体
-    GraphicsView(QWidget *parent);
-    void set_manager(NodeManager *manager);
+    GraphicsView(QWidget *parent, NodeManager *manager);
     /// @brief 鼠标滚轮事件
     /// @param event 事件源
     void wheelEvent(QWheelEvent *event) override;
@@ -47,6 +50,8 @@ public:
     /// @param event 事件源
     void contextMenuEvent(QContextMenuEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
+    Port *get_port(QPoint pos);
+    NodeWidget *get_node(QPoint pos);
     /// @brief 节点管理器
     NodeManager *main_thread{nullptr};
 

@@ -34,7 +34,7 @@ void LibManager::load()
         auto node_name = ((func_get_node_name)lib.resolve(NAME_OF_GET_NODE_NAME))();
         auto node_type = ((func_get_node_type)lib.resolve(NAME_OF_GET_NODE_TYPE))();
         auto func_create_node_p = (func_create_node)lib.resolve(NAME_OF_CREATE_NODE);
-        std::cout << "Load " << file << " successed. name as: " << node_name << std::endl;
+        std::cout << "Add node " << node_type << ": " << node_name << std::endl;
 
         func_map[node_type][node_name] = func_create_node_p;
     }

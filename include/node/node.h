@@ -105,4 +105,4 @@ protected:
     void m_build_widget();
 };
 
-std::string get_node_type_name(Node::Type type);
+const char *get_node_type_name(Node::Type type);

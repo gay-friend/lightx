@@ -44,7 +44,7 @@ foreach(file ${LIBS})
 endforeach()
 
 include_directories(${PROJECT_SOURCE_DIR}/include) # 添加头文件
-include_directories(LIBS ${THIRD_PARTY_DIR}/include)
+include_directories(${THIRD_PARTY_DIR}/include)
 
 file(GLOB_RECURSE THIRD_PARTY_INCLUDES ${THIRD_PARTY_DIR}/include/*.h*)
 # foreach(file ${THIRD_PARTY_INCLUDES})
@@ -56,6 +56,5 @@ file(GLOB_RECURSE INCLUDES ${ROOT}/include/*.h*)
 #     message(${file})
 # endforeach()
 
-add_subdirectory(node)
 add_subdirectory(src)
 # add_subdirectory(${PROJECT_SOURCE_DIR}/examples)

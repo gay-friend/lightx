@@ -1,6 +1,6 @@
 #include "widgets/graphics_view.h"
 
-GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
+GraphicsView::GraphicsView(QWidget *parent, NodeManager *manager) : QGraphicsView(parent), main_thread(manager)
 {
     // 设置框选模式
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
@@ -23,10 +23,26 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)
     // 添加连续预览线到场景
     m_scene->addItem(&m_preview_line);
     m_preview_line.setVisible(false);
+
+    QObject::connect(manager, &NodeManager::on_node_add, this, &GraphicsView::add_node);
+    QObject::connect(manager, &NodeManager::on_line_add, this, &GraphicsView::add_line);
+    QObject::connect(manager, &NodeManager::on_scene_update, [this]()
+                     { this->scene()->update(); });
 }
-void GraphicsView::set_manager(NodeManager *manager)
+void GraphicsView::update_selected_node()
 {
-    main_thread = manager;
+    for (auto item : this->m_scene->selectedItems())
+    {
+        main_thread->update_node(dynamic_cast<NodeWidget *>(item));
+    }
+}
+Port *GraphicsView::get_port(QPoint pos)
+{
+    return dynamic_cast<Port *>(itemAt(pos));
+}
+NodeWidget *GraphicsView::get_node(QPoint pos)
+{
+    return dynamic_cast<NodeWidget *>(itemAt(pos));
 }
 
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -75,7 +91,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
     m_mouse_clike_pos = event->pos();
-    auto port = main_thread->get_port(m_mouse_clike_pos);
+    auto port = this->get_port(m_mouse_clike_pos);
     switch (event->button())
     {
     case Qt::LeftButton:
@@ -110,9 +126,9 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
     // 不显示画线预览线
     m_preview_line.setVisible(false);
-    auto release_port = main_thread->get_port(event->pos());
-    auto click_port = main_thread->get_port(m_mouse_clike_pos);
-    auto node = main_thread->get_node(event->pos());
+    auto release_port = this->get_port(event->pos());
+    auto click_port = this->get_port(m_mouse_clike_pos);
+    auto node = this->get_node(event->pos());
 
     switch (event->button())
     {
@@ -121,6 +137,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 
         if (release_port != nullptr && m_is_drawing)
         {
+            // port connect
             if (main_thread->port_type_check(click_port, release_port) &&
                 main_thread->port_data_type_check(click_port, release_port))
             {
@@ -137,17 +154,14 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
         }
         else if (m_is_drawing && release_port == nullptr && click_port != nullptr)
         {
-            // 移除线
+            // delete connect
             if (click_port->type == Port::Input || click_port->type == Port::InputForce)
             {
                 main_thread->delete_port_connect(click_port);
             }
         }
-        if (node != nullptr)
-        {
-            std::cout << node->node->uuid << std::endl;
-        }
 
+        // select change
         if (release_port == nullptr && node != nullptr && this->m_selected_node_id != node->node->uuid)
         {
             this->m_selected_node_id = node->node->uuid;
@@ -188,6 +202,18 @@ void GraphicsView::dragMoveEvent(QDragMoveEvent *event)
         QGraphicsView::dragMoveEvent(event);
     }
 }
+void GraphicsView::add_line(BezierCurveItem *line)
+{
+    this->scene()->addItem(line);
+}
+void GraphicsView::add_node(NodeWidget *node_widget)
+{
+    if (node_widget != nullptr)
+    {
+        this->scene()->addItem(node_widget);
+        QObject::connect(node_widget, &NodeWidget::on_change, this, &GraphicsView::update_selected_node);
+    }
+}
 
 void GraphicsView::dropEvent(QDropEvent *event)
 {
@@ -202,19 +228,7 @@ void GraphicsView::dropEvent(QDropEvent *event)
         }
         auto data = item->data(0, Qt::UserRole).value<QList<QString>>();
         QPointF pos(mapToScene(event->position().toPoint()));
-
-        auto node = main_thread->lib_manager->create_node(data[0].toStdString(), data[1].toStdString());
-        auto node_widget = new NodeWidget(nullptr, node, pos);
-
-        if (node != nullptr)
-        {
-            main_thread->add_node(node_widget);
-            std::cout << data[1].toStdString() << " Add" << std::endl;
-        }
-        else
-        {
-            std::cout << data[1].toStdString() << " not support!" << std::endl;
-        }
+        this->main_thread->create_node(data[0].toStdString(), data[1].toStdString(), pos);
     }
     catch (const std::exception &e)
     {
@@ -234,7 +248,7 @@ void GraphicsView::keyReleaseEvent(QKeyEvent *event)
         break;
     case Qt::Key_Delete:
         // 删除选中
-        main_thread->delete_selected();
+        main_thread->delete_selected(this->scene()->selectedItems());
     default:
         break;
     }

@@ -11,10 +11,9 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     move(center_x, center_y);
 
     // 编辑器设置，位置在中间，占比例至少80 %
-    m_editor = new GraphicsView(this);
-    auto manager = new NodeManager(m_editor);
+    auto manager = new NodeManager();
+    m_editor = new GraphicsView(this, manager);
     QObject::connect(m_editor, &GraphicsView::on_select_change, this, &EditorWindow::set_right_dock);
-    m_editor->set_manager(manager);
     // 初始化菜单栏
 
     // 初始化侧边栏
