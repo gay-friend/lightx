@@ -2,7 +2,7 @@
 
 NodeManager::NodeManager(QGraphicsView *view) : m_view(view), QThread(nullptr)
 {
-    lib_manager = new LibManager("lib", "create_node");
+    lib_manager = new LibManager(".");
     load_workspace("workspace.json");
 }
 NodeManager::~NodeManager()
@@ -435,9 +435,4 @@ void NodeManager::delete_selected()
             delete_port_connect((*it).in_port);
         }
     }
-}
-
-std::vector<std::string> NodeManager::get_all_node_names() const
-{
-    return lib_manager->names;
 }

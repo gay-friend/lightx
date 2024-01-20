@@ -19,6 +19,8 @@ IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(BUILD_DIR ${ROOT}/../build/linux)
     file(GLOB_RECURSE LIBS ${THIRD_PARTY_DIR}/libs/linux/*so*)
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    # add_definitions("-DUNICODE" "-D_UNICODE")
+    remove_definitions("-DUNICODE")
 	MESSAGE(STATUS "current platform: Windows")
     set(BUILD_DIR ${ROOT}/../build/win)
     file(GLOB_RECURSE LIBS ${THIRD_PARTY_DIR}/libs/win/*lib)
@@ -29,6 +31,9 @@ ELSE ()
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 # 设置动态库的输出目录
+
+set(LIBRARY_OUTPUT_PATH ${BUILD_DIR})
+set(ARCHIVE_OUTPUT_DIRECTORY ${BUILD_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_DIR})
 # 设置静态库的输出目录
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUILD_DIR})

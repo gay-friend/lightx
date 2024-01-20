@@ -24,7 +24,7 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     auto left_bar = new SidebarWidget(nullptr, "", false);
     auto model_tree = new NodeListWidget(this, true);
     model_tree->build_tree(m_editor->main_thread->lib_manager->func_map);
-    left_bar->add_comp("模块库", model_tree, false, 10);
+    left_bar->add_comp("模块库", model_tree, false, true);
     m_left_layout->addWidget(left_bar);
 
     // 设置布局的初始大小

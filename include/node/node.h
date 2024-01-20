@@ -12,17 +12,8 @@
 
 #include "node/port.h"
 #include "utils/uuid.hpp"
-// #include "utils/image_utils.hpp"
 
 using json = nlohmann::json;
-
-#ifndef NODE_API
-#if _WIN64
-#define NODE_API extern "C" __declspec(dllexport)
-#else
-#define NODE_API extern "C"
-#endif
-#endif
 
 class Node : public QWidget
 {
@@ -115,12 +106,3 @@ protected:
 };
 
 std::string get_node_type_name(Node::Type type);
-
-/// @brief 节点信息
-typedef struct NodeInfo
-{
-    std::string name; // 节点名
-    Node::Type type;  // 节点类型
-} NodeInfo;
-typedef Node *(*func_create_node)();
-typedef NodeInfo *(*func_get_lib_name)();

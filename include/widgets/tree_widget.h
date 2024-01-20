@@ -8,7 +8,7 @@ class NodeListWidget : public QTreeWidget
 public:
     NodeListWidget(QWidget *parent = nullptr, bool drag_enabled = false);
     void startDrag(Qt::DropActions supportedActions) override;
-    void build_tree(std::map<std::string, std::map<std::string, func_create_node *>> m_func_map);
+    void build_tree(std::map<std::string, std::map<std::string, func_create_node>> m_func_map);
     void dragEnterEvent(QDragEnterEvent *event) override;
 
     QTreeWidgetItem *dragged_item;

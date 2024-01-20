@@ -6,5 +6,4 @@ endforeach()
 
 add_executable(${PROJECT_NAME} ${SRCS} ${INCLUDES} ${THIRD_PARTY_INCLUDES})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(${PROJECT_NAME} PRIVATE node)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE node ${LIBS})

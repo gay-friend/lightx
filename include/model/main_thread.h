@@ -108,9 +108,6 @@ public:
     void delete_port_connect(Port *info);
     /// @brief 删除已选
     void delete_selected();
-    /// @brief 获取所有节点名
-    /// @return names
-    std::vector<std::string> get_all_node_names() const;
     /// @brief 包管理
     LibManager *lib_manager;
 

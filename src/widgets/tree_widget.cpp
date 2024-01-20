@@ -28,7 +28,7 @@ void NodeListWidget::dragEnterEvent(QDragEnterEvent *event)
 {
 }
 
-void NodeListWidget::build_tree(std::map<std::string, std::map<std::string, func_create_node *>> m_func_map)
+void NodeListWidget::build_tree(std::map<std::string, std::map<std::string, func_create_node>> m_func_map)
 {
     clear();
     QList<QTreeWidgetItem *> items;

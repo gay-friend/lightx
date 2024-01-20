@@ -5,7 +5,8 @@
 #include <QApplication>
 #include <opencv2/opencv.hpp>
 #include <nlohmann/json.hpp>
-
+#include <QLibrary>
+#include <QDebug>
 using json = nlohmann::json;
 
 int main(int argc, char *argv[])
@@ -20,6 +21,15 @@ int main(int argc, char *argv[])
     // widgets::StrongBodyLabel("StrongBodyLabel", w);
     // w->show();
     // return app.exec();
+    QLibrary lib("test.dll");
+    typedef void (*hello_func)();
+    typedef int(my_val);
+    lib.load();
+    qDebug() << lib.errorString();
+
+    auto h = (hello_func)lib.resolve("hello");
+    h();
+    // std::cout << lib.errorString().toStdString() << std::endl;
 
     json obj;
     obj["id"] = "1234";
