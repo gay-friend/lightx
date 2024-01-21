@@ -15,7 +15,7 @@ class GraphicsView : public QGraphicsView
 {
     Q_OBJECT
 signals:
-    void on_select_change(QWidget *w);
+    void on_select(NodeWidget *w);
 public slots:
     void update_selected_node();
     void add_node(NodeWidget *node_widget);
@@ -56,7 +56,6 @@ public:
     NodeManager *main_thread{nullptr};
 
 private:
-    std::string m_selected_node_id;
     /// @brief 拖动中？
     bool m_is_drawing = false;
     /// @brief 画布拖动

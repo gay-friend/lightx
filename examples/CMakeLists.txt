@@ -2,8 +2,8 @@ set(PROJECT_NAME examples)
 project(${PROJECT_NAME} VERSION 0.1)
 
 # 发现一个目录下所有的源代码文件并将列表存储在一个变量中
-file(GLOB_RECURSE SRCS ${ROOT}/examples/*.cpp
-                       ${ROOT}/include/qwidgets/*.hpp
+file(GLOB_RECURSE SRCS *.cpp
+                       ${PROJECT_SOURCE_DIR}/../include/qwidgets/*.hpp
                        )
 
 foreach(file ${SRCS})

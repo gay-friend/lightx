@@ -13,7 +13,8 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     // 编辑器设置，位置在中间，占比例至少80 %
     auto manager = new NodeManager();
     m_editor = new GraphicsView(this, manager);
-    QObject::connect(m_editor, &GraphicsView::on_select_change, this, &EditorWindow::set_right_dock);
+    manager->load_workspace("workspace.json");
+    QObject::connect(m_editor, &GraphicsView::on_select, this, &EditorWindow::on_node_select);
     // 初始化菜单栏
 
     // 初始化侧边栏
@@ -62,9 +63,13 @@ void EditorWindow::on_action_run()
     m_editor->main_thread->start();
 }
 
-void EditorWindow::set_right_dock(QWidget *w)
+void EditorWindow::on_node_select(NodeWidget *w)
 {
-    m_right_dock->setWidget(w);
+    if (w->node->uuid == this->m_selected_node_id)
+    {
+        return;
+    }
+    m_right_dock->setWidget(w->node);
 }
 
 int run_ui(int argc, char *argv[])

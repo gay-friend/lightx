@@ -42,7 +42,26 @@ Port *GraphicsView::get_port(QPoint pos)
 }
 NodeWidget *GraphicsView::get_node(QPoint pos)
 {
-    return dynamic_cast<NodeWidget *>(itemAt(pos));
+    auto pos_item = itemAt(pos);
+    if (pos_item == nullptr)
+    {
+        return nullptr;
+    }
+    auto node_widget = dynamic_cast<NodeWidget *>(pos_item);
+
+    if (node_widget != nullptr)
+    {
+        return node_widget;
+    }
+    for (auto item : this->m_scene->selectedItems())
+    {
+        node_widget = dynamic_cast<NodeWidget *>(item);
+        if (node_widget != nullptr && node_widget->isSelected() && node_widget->contains(pos_item->boundingRect().center()))
+        {
+            return node_widget;
+        }
+    }
+    return nullptr;
 }
 
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -160,17 +179,12 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
                 main_thread->delete_port_connect(click_port);
             }
         }
-
-        // select change
-        if (release_port == nullptr && node != nullptr && this->m_selected_node_id != node->node->uuid)
+        else
         {
-            this->m_selected_node_id = node->node->uuid;
-            emit this->on_select_change(node->node);
-        }
-        else if (release_port == nullptr && node == nullptr && this->m_selected_node_id != "")
-        {
-            this->m_selected_node_id = "";
-            emit this->on_select_change(nullptr);
+            if (release_port == nullptr && node != nullptr)
+            {
+                emit this->on_select(node);
+            }
         }
         break;
     case Qt::RightButton:

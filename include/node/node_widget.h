@@ -2,6 +2,7 @@
 #include "node/node.h"
 
 #include <QGraphicsDropShadowEffect>
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 /// @brief 节点接口类

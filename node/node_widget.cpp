@@ -128,7 +128,6 @@ void NodeWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setBrush(m_brush_title_back);
     painter->drawPath(title_outline.simplified());
 }
-
 void NodeWidget::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     emit on_change();

@@ -3,7 +3,6 @@
 NodeManager::NodeManager() : QThread(nullptr)
 {
     lib_manager = new LibManager("lib");
-    load_workspace("workspace.json");
 }
 NodeManager::~NodeManager()
 {
@@ -251,10 +250,15 @@ void NodeManager::load_workspace(const std::string &file)
 
             auto node_type_name = get_node_type_name(node_obj["type"]);
             auto node_name = node_obj["name"];
-            auto node = lib_manager->create_node(node_type_name, node_name);
-            node->load_from_json(node_obj);
-            auto node_widget = new NodeWidget(nullptr, node, QPointF(obj["x"], obj["y"]));
-            add_node(node_widget);
+            auto node = this->lib_manager->create_node(node_type_name, node_name);
+            if (node != nullptr)
+            {
+                auto node = lib_manager->create_node(node_type_name, node_name);
+                node->load_from_json(node_obj);
+                auto node_widget = new NodeWidget(nullptr, node, QPointF(obj["x"], obj["y"]));
+                this->add_node(node_widget);
+                emit on_node_add(node_widget);
+            }
         }
 
         for (json line_obj : workspace["lines"])

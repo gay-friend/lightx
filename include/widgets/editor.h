@@ -20,7 +20,7 @@ public:
 
 public slots:
     void on_action_run();
-    void set_right_dock(QWidget *w);
+    void on_node_select(NodeWidget *w);
 
 private:
     QToolBar *m_tool_bar;
@@ -32,6 +32,7 @@ private:
     QWidget *m_left_sidebar;
     QDockWidget *m_right_dock;
     QVBoxLayout *m_left_layout;
+    std::string m_selected_node_id{""};
 };
 
 int run_ui(int argc, char *argv[]);
