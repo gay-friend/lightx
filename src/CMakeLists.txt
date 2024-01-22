@@ -7,4 +7,4 @@ foreach(file ${SRCS})
 endforeach()
 
 add_executable(${PROJECT_NAME} ${SRCS} ${INCLUDES} ${THIRD_PARTY_INCLUDES})
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets node ${THRRD_PARTY_LIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets node${BUILD_FLAG} ${THRRD_PARTY_LIB})

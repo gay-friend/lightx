@@ -1,4 +1,4 @@
-set(PROJECT_NAME node) #设置工程环境变量
+set(PROJECT_NAME node${BUILD_FLAG}) #设置工程环境变量
 project(${PROJECT_NAME} VERSION 0.1) # 设置工程名称
 
 # 发现一个目录下所有的源代码文件并将列表存储在一个变量中
