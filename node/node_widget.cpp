@@ -34,7 +34,7 @@ NodeWidget::NodeWidget(QGraphicsItem *parent, Node *node, QPointF pos) : node(no
     {
         port->setParentItem(this);
         auto x = port->type == Port::Output ? m_node_width - port->port_width - m_port_padding : m_port_padding;
-        auto y = m_title_height + port->id * (m_port_padding + port->icon_size) + m_port_padding;
+        auto y = m_title_height + port->index * (m_port_padding + port->icon_size) + m_port_padding;
         port->setPos(x, y);
     }
 

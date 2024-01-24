@@ -7,8 +7,11 @@
 #include <QHBoxLayout>
 #include <QIntValidator>
 #include <QDoubleValidator>
+#include <QPushButton>
 #include <QCheckBox>
+#include <QComboBox>
 #include <nlohmann/json.hpp>
+#include <map>
 
 #include "node/port.h"
 #include "utils/uuid.hpp"
@@ -37,12 +40,12 @@ public:
     virtual void uninit() = 0;
     virtual void execute() = 0;
 
-    json to_json();
-    void load_from_json(json config);
+    json dumps();
+    void loads(json config);
 
     Node(const std::string &node_name, Type node_type, QWidget *parent = nullptr);
-    Port *add_port(uint id, const std::string &name, Port::Type type, Port::DataType data_type);
-    void add_pair_port(uint id, const std::string &name, Port::DataType data_type, bool in_force = false);
+    Port *add_port(uint index, const std::string &name, Port::Type type, Port::DataType data_type, std::vector<std::string> items={});
+    Port *add_pair_port(uint index, const std::string &name, Port::DataType data_type, bool in_force, std::vector<std::string> items={});
     bool can_run() const;
     void run();
     void reset();
@@ -50,7 +53,7 @@ public:
     /// @param port_id 端口ID
     /// @param port_type
     /// @return 端口
-    Port *get_port(uint port_id, Port::Type port_type) const;
+    Port *get_port(std::string uuid) const;
     std::vector<Port *> get_all_ports() const;
     /// @brief 获取端口
     /// @param pos 坐标
@@ -65,26 +68,6 @@ public:
     /// @brief 是否开始节点
     /// @return bool
     bool is_start_node() const;
-    template <typename T>
-    void set_port_value(uint id, Port::Type type, T value)
-    {
-        auto port = get_port(id, type);
-        if (port == nullptr)
-        {
-            return;
-        }
-        port->set_value(value);
-    }
-    template <typename T>
-    T get_port_value(uint id, Port::Type type) const
-    {
-        auto port = get_port(id, type);
-        if (port == nullptr)
-        {
-            return T();
-        }
-        return port->get_value<T>();
-    }
 
     STATE state{STATE_NORMAL};
     /// @brief 节点类型
@@ -93,7 +76,7 @@ public:
     const std::string &name{""};
     /// @brief 节点ID
     std::string uuid;
-    std::vector<Port *> m_ports;
+    std::map<std::string, Port *> m_ports_map;
     bool is_executed{false};
 
 signals:
@@ -101,6 +84,8 @@ signals:
     void on_run_complete();
     void on_run_error();
     void on_run_reset();
+public slots:
+    void aplay();
 
 protected:
     void m_build_widget();

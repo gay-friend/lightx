@@ -27,7 +27,7 @@ public:
     /// @param node_id 节点ID
     /// @param port_id 端口ID
     /// @return 端口信息
-    Port *get_port(const std::string &node_id, int port_id, Port::Type port_type);
+    Port *get_port(const std::string &node_id, std::string port_uuid);
     NodeWidget *get_node(Port *port);
     /// @brief 获取端口所有连线信息
     /// @param port 端口
@@ -75,7 +75,7 @@ public:
     /// @param orgin_port_id 原端口ID
     /// @param target_node_id 目标节点ID
     /// @param target_port_id 目标端口ID
-    void port_connect(const std::string &orgin_node_id, int orgin_port_id, Port::Type origin_port_type, const std::string &target_node_id, int target_port_id, Port::Type target_port_type);
+    void port_connect(const std::string &orgin_node_id, std::string orgin_port_id, const std::string &target_node_id, std::string target_port_id);
     /// @brief 端口连接
     /// @param port1 端口信息1
     /// @param port2 端口信息2

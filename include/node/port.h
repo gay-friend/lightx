@@ -3,7 +3,19 @@
 #include <QMap>
 #include <QPainter>
 #include <QGraphicsItem>
+#include <QLineEdit>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QIntValidator>
+#include <QDoubleValidator>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QComboBox>
 #include <nlohmann/json.hpp>
+
+#include "utils/image_utils.hpp"
+#include "utils/uuid.hpp"
 
 using json = nlohmann::json;
 
@@ -28,15 +40,23 @@ public:
         String,
         File,
         Image,
+        Enum
     };
 
-    Port(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
-    json to_json();
-    void load_from_json(json config);
-    QRectF boundingRect() const;
-    virtual QPointF get_port_pos() const;
-    virtual void connect(Port *port);
-    virtual void disconnect();
+    Port(const std::string &node_id, uint index,
+         const std::string &name, Type type,
+         DataType data_type,
+         QColor color);
+    void loads(json config);
+    virtual json dumps();
+    virtual void apply_ui(QVariant *data) = 0;
+    virtual void apply_backend() = 0;
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    QRectF boundingRect() const override;
+    QPointF get_port_pos() const;
+    void connect(Port *port);
+    void disconnect();
     bool readonly();
     bool is_pair();
     template <typename T>
@@ -45,6 +65,7 @@ public:
         if (m_parent == nullptr)
         {
             m_data->setValue(QVariant::fromValue(value));
+            this->apply_ui(m_data);
             emit on_value_change(m_data);
         }
         else
@@ -60,10 +81,11 @@ public:
     void set_parent(Port *port);
     void add_child(Port *port);
     void remove_child(Port *port);
-    QVariant *get_data();
+    QLayout *setting_layout{nullptr};
 
     std::string node_id;
-    uint id;
+    uint index;
+    std::string uuid;
     std::string name;
     Type type;
     DataType data_type;
@@ -71,19 +93,12 @@ public:
     bool is_connected{false};
     int icon_size{15};
     int port_width;
+    std::vector<std::string> combo_items;
 
 protected:
     Port *m_parent{nullptr};
     std::vector<Port *> m_childs;
     QVariant *m_data;
-    inline static std::map<DataType, QColor> COLOR_MAP{
-        {Port::Float, QColor("#2fFF09")},
-        {Port::Int, QColor("#008000")},
-        {Port::Bool, QColor("#ff0606")},
-        {Port::String, QColor("#be0ba0")},
-        {Port::Image, QColor("#00BFFF")},
-        {Port::File, QColor("#b92ee6")},
-    };
     QPen m_pen_default;
     QBrush m_brush_default;
     QFont m_font;
@@ -91,17 +106,95 @@ protected:
     int m_label_size;
 };
 
-class InputPort : public Port
+class StringPort : public Port
 {
 public:
-    InputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    StringPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#be0ba0");
+    void loads(json config);
+    virtual json dumps() override;
+    virtual void apply_ui(QVariant *data);
+    virtual void apply_backend();
+
+protected:
+    QLineEdit *m_edit{nullptr};
+};
+class FilePort : public StringPort
+{
+public:
+    FilePort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#b92ee6");
+
+protected:
+    QLineEdit *m_edit{nullptr};
+};
+class IntPort : public StringPort
+{
+public:
+    IntPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#008000");
+    void loads(json config);
+    virtual void apply_backend() override;
+    virtual json dumps() override;
+
+protected:
+    QLineEdit *m_edit{nullptr};
+};
+class FloatPort : public StringPort
+{
+public:
+    FloatPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#2fFF09");
+    void loads(json config);
+    virtual void apply_backend() override;
+    virtual json dumps() override;
+
+protected:
+    QLineEdit *m_edit{nullptr};
 };
 
-class OutputPort : public Port
+class BoolPort : public Port
 {
 public:
-    OutputPort(const std::string &node_id, uint id, const std::string &name = "Port", Type type = Input, DataType data_type = Int);
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    virtual QPointF get_port_pos() const override;
+    BoolPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#ff0606");
+    void loads(json config);
+    virtual json dumps() override;
+    virtual void apply_ui(QVariant *data);
+    virtual void apply_backend();
+
+protected:
+    QCheckBox *m_check{nullptr};
 };
+
+class EnumPort : public Port
+{
+public:
+    EnumPort(const std::string &node_id,
+             uint index, const std::string &name,
+             Type type,
+             std::vector<std::string> items,
+             QColor color = "#a92ee6");
+    void loads(json config);
+    virtual json dumps() override;
+    virtual void apply_ui(QVariant *data);
+    virtual void apply_backend();
+
+protected:
+    std::vector<std::string> m_combo_items;
+    QComboBox *m_combo{nullptr};
+};
+
+class ImagePort : public Port
+{
+public:
+    ImagePort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#00BFFF");
+    void loads(json config);
+    virtual void apply_ui(QVariant *data);
+    virtual void apply_backend();
+
+protected:
+    QLabel *m_im_label{nullptr};
+};
+
+Port *create_port(
+    const std::string &node_id, uint index,
+    const std::string &name,
+    Port::Type port_type,
+    Port::DataType data_type,
+    std::vector<std::string> items);

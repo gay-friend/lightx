@@ -37,14 +37,14 @@ std::vector<LineInfo> NodeManager::get_lines_info(Port *port) const
                  { return line.is_line_port(port); });
     return lines;
 }
-Port *NodeManager::get_port(const std::string &node_id, int port_id, Port::Type port_type)
+Port *NodeManager::get_port(const std::string &node_id, std::string port_uuid)
 {
-    if (m_nodes_map.count(node_id) == 0)
+    if (m_nodes_map.find(node_id) == m_nodes_map.end())
     {
         return nullptr;
     }
     auto node_widget = m_nodes_map[node_id];
-    return node_widget->node->get_port(port_id, port_type);
+    return node_widget->node->get_port(port_uuid);
 }
 
 bool NodeManager::port_type_check(Port *port1, Port *port2) const
@@ -213,7 +213,7 @@ void NodeManager::save_workspace(const std::string &file)
         auto node_widget = item.second;
         w_obj["x"] = node_widget->pos().x();
         w_obj["y"] = node_widget->pos().y();
-        w_obj["node"] = node_widget->node->to_json();
+        w_obj["node"] = node_widget->node->dumps();
         widget_objs.push_back(w_obj);
     }
     workspace["widgets"] = widget_objs;
@@ -222,12 +222,10 @@ void NodeManager::save_workspace(const std::string &file)
     for (auto line : m_lines_info)
     {
         json line_obj;
-        line_obj["target_port_id"] = line.in_port->id;
-        line_obj["target_port_type"] = line.in_port->type;
+        line_obj["target_port_id"] = line.in_port->uuid;
         line_obj["target_node_id"] = line.in_port->node_id;
 
-        line_obj["origin_port_id"] = line.out_port->id;
-        line_obj["origin_port_type"] = line.out_port->type;
+        line_obj["origin_port_id"] = line.out_port->uuid;
         line_obj["origin_node_id"] = line.out_port->node_id;
         line_objs.push_back(line_obj);
     }
@@ -254,7 +252,7 @@ void NodeManager::load_workspace(const std::string &file)
             if (node != nullptr)
             {
                 auto node = lib_manager->create_node(node_type_name, node_name);
-                node->load_from_json(node_obj);
+                node->loads(node_obj);
                 auto node_widget = new NodeWidget(nullptr, node, QPointF(obj["x"], obj["y"]));
                 this->add_node(node_widget);
                 emit on_node_add(node_widget);
@@ -264,13 +262,11 @@ void NodeManager::load_workspace(const std::string &file)
         for (json line_obj : workspace["lines"])
         {
             std::string target_node_id = line_obj["target_node_id"];
-            int target_port_id = line_obj["target_port_id"];
-            Port::Type target_port_type = line_obj["target_port_type"];
+            std::string target_port_id = line_obj["target_port_id"];
 
             std::string origin_node_id = line_obj["origin_node_id"];
-            int origin_port_id = line_obj["origin_port_id"];
-            Port::Type origin_port_type = line_obj["origin_port_type"];
-            port_connect(origin_node_id, origin_port_id, origin_port_type, target_node_id, target_port_id, target_port_type);
+            std::string origin_port_id = line_obj["origin_port_id"];
+            port_connect(origin_node_id, origin_port_id, target_node_id, target_port_id);
         }
     }
     catch (const std::exception &e)
@@ -292,10 +288,10 @@ void NodeManager::create_node(const std::string &node_type, const std::string &n
         emit on_node_add(node_widget);
     }
 }
-void NodeManager::port_connect(const std::string &orgin_node_id, int orgin_port_id, Port::Type origin_port_type, const std::string &target_node_id, int target_port_id, Port::Type target_port_type)
+void NodeManager::port_connect(const std::string &orgin_node_id, std::string orgin_port_id, const std::string &target_node_id, std::string target_port_id)
 {
-    auto port1 = get_port(orgin_node_id, orgin_port_id, origin_port_type);
-    auto port2 = get_port(target_node_id, target_port_id, target_port_type);
+    auto port1 = get_port(orgin_node_id, orgin_port_id);
+    auto port2 = get_port(target_node_id, target_port_id);
     port_connect(port1, port2);
 }
 void NodeManager::port_connect(Port *port1, Port *port2)
