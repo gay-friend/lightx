@@ -7,7 +7,7 @@ Port *Node::add_port(uint index, const std::string &name,
                      std::vector<std::string> items)
 {
     auto port = create_port(this->uuid, index, name, type, data_type, items);
-    this->m_ports_map[port->uuid] = port;
+    m_ports.push_back(port);
     return port;
 }
 Port *Node::add_pair_port(uint index, const std::string &name, Port::DataType data_type, bool in_force, std::vector<std::string> items)
@@ -16,8 +16,8 @@ Port *Node::add_pair_port(uint index, const std::string &name, Port::DataType da
     auto in_port = create_port(this->uuid, index, name, type, data_type, items);
     auto out_port = create_port(this->uuid, index, name, Port::Output, data_type, items);
     out_port->set_parent(in_port);
-    this->m_ports_map[in_port->uuid] = in_port;
-    this->m_ports_map[out_port->uuid] = out_port;
+    m_ports.push_back(in_port);
+    m_ports.push_back(out_port);
     return in_port;
 }
 
@@ -27,9 +27,9 @@ Node::Node(const std::string &node_name, Type node_type, QWidget *parent) : QWid
 }
 void Node::aplay()
 {
-    for (auto item : m_ports_map)
+    for (auto port : this->m_ports)
     {
-        item.second->apply_backend();
+        port->apply_backend();
     }
 }
 void Node::m_build_widget()
@@ -38,9 +38,8 @@ void Node::m_build_widget()
     auto apply_botton = new QPushButton("Apply");
     QObject::connect(apply_botton, &QPushButton::released, this, &Node::aplay);
     v_layout->addWidget(apply_botton);
-    for (auto item : m_ports_map)
+    for (auto port : this->m_ports)
     {
-        auto port = item.second;
         if (port->data_type == Port::Image || port->is_pair())
         {
             continue;
@@ -48,9 +47,8 @@ void Node::m_build_widget()
         v_layout->addLayout(port->setting_layout);
     }
 
-    for (auto item : m_ports_map)
+    for (auto port : this->m_ports)
     {
-        auto port = item.second;
         if (port->data_type != Port::Image || port->is_pair())
         {
             continue;
@@ -61,10 +59,10 @@ void Node::m_build_widget()
 }
 bool Node::can_run() const
 {
-    for (auto item : m_ports_map)
+    for (auto port : this->m_ports)
     {
         // 有任意强制节点未连接，则不能运行
-        if (item.second->type == Port::InputForce && !item.second->is_connected)
+        if (port->type == Port::InputForce && !port->is_connected)
         {
             return false;
         }
@@ -98,30 +96,28 @@ void Node::run()
 
 Port *Node::get_port(std::string uuid) const
 {
-    if (this->m_ports_map.count(uuid) > 0)
+    for (auto port : m_ports)
     {
-        return this->m_ports_map.at(uuid);
+        if (port->uuid == uuid)
+        {
+            return port;
+        }
     }
-
     return nullptr;
 }
+
 std::vector<Port *> Node::get_all_ports() const
 {
-    std::vector<Port *> ports;
-    for (auto item : this->m_ports_map)
-    {
-        ports.push_back(item.second);
-    }
-    return ports;
+    return m_ports;
 }
 
 Port *Node::get_port_by_pos(QPointF pos) const
 {
-    for (auto item : this->m_ports_map)
+    for (auto port : this->m_ports)
     {
-        if (item.second->boundingRect().contains(pos))
+        if (port->boundingRect().contains(pos))
         {
-            return item.second;
+            return port;
         }
     }
     return nullptr;
@@ -130,9 +126,8 @@ Port *Node::get_port_by_pos(QPointF pos) const
 std::vector<Port *> Node::get_connected_in_ports() const
 {
     std::vector<Port *> ports;
-    for (auto item : this->m_ports_map)
+    for (auto port : this->m_ports)
     {
-        auto port = item.second;
         if (port->type != Port::Output && port->is_connected)
         {
             ports.push_back(port);
@@ -144,9 +139,8 @@ std::vector<Port *> Node::get_connected_in_ports() const
 std::vector<Port *> Node::get_connected_out_port() const
 {
     std::vector<Port *> ports;
-    for (auto item : this->m_ports_map)
+    for (auto port : this->m_ports)
     {
-        auto port = item.second;
         if (port->type == Port::Output && port->is_connected)
         {
             ports.push_back(port);
@@ -157,9 +151,8 @@ std::vector<Port *> Node::get_connected_out_port() const
 
 bool Node::is_start_node() const
 {
-    for (auto item : this->m_ports_map)
+    for (auto port : this->m_ports)
     {
-        auto port = item.second;
         if (port->type != Port::Output && port->is_connected)
         {
             return false;
@@ -171,9 +164,9 @@ json Node::dumps()
 {
     json obj;
     std::vector<json> port_objs;
-    for (auto item : this->m_ports_map)
+    for (auto port : this->m_ports)
     {
-        port_objs.push_back(item.second->dumps());
+        port_objs.push_back(port->dumps());
     }
     obj["ports"] = port_objs;
     obj["uuid"] = this->uuid;
@@ -185,12 +178,23 @@ json Node::dumps()
 void Node::loads(json config)
 {
     this->uuid = config["uuid"];
+    for (auto port : m_ports)
+    {
+        port->node_id = this->uuid;
+    }
     for (json port_obj : config["ports"])
     {
-        auto port = get_port(port_obj["uuid"]);
-        if (port != nullptr)
+        for (auto port : m_ports)
         {
-            port->loads(port_obj);
+            int index = port_obj["index"];
+            Port::Type type = port_obj["type"];
+            Port::DataType data_type = port_obj["data_type"];
+            if (port->index == index && port->type == type && port->data_type == data_type)
+            {
+                std::cout << "loading" << std::endl;
+                port->loads(port_obj);
+                break;
+            }
         }
     }
 }

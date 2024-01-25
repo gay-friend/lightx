@@ -44,8 +44,8 @@ public:
     void loads(json config);
 
     Node(const std::string &node_name, Type node_type, QWidget *parent = nullptr);
-    Port *add_port(uint index, const std::string &name, Port::Type type, Port::DataType data_type, std::vector<std::string> items={});
-    Port *add_pair_port(uint index, const std::string &name, Port::DataType data_type, bool in_force, std::vector<std::string> items={});
+    Port *add_port(uint index, const std::string &name, Port::Type type, Port::DataType data_type, std::vector<std::string> items = {});
+    Port *add_pair_port(uint index, const std::string &name, Port::DataType data_type, bool in_force, std::vector<std::string> items = {});
     bool can_run() const;
     void run();
     void reset();
@@ -76,7 +76,7 @@ public:
     const std::string &name{""};
     /// @brief 节点ID
     std::string uuid;
-    std::map<std::string, Port *> m_ports_map;
+    std::vector<Port *> m_ports;
     bool is_executed{false};
 
 signals:

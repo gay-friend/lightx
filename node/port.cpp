@@ -1,9 +1,8 @@
 #include "node/port.h"
 
 Port::Port(const std::string &node_id, uint index,
-           const std::string &name, Type type,
-           DataType data_type, QColor color)
-    : node_id(node_id), index(index), name(name), type(type), data_type(data_type), color(color), QGraphicsObject(nullptr)
+           const std::string &name, Type type, QColor color)
+    : node_id(node_id), index(index), name(name), type(type), color(color), QGraphicsObject(nullptr)
 {
     m_pen_default = QPen(color);
     m_pen_default.setWidthF(1.5);
@@ -18,16 +17,16 @@ Port::Port(const std::string &node_id, uint index,
 }
 void Port::loads(json config)
 {
-    this->node_id = config["node_id"];
     this->name = config["name"];
     this->type = config["type"];
+    this->uuid = config["uuid"];
     this->data_type = config["data_type"];
 }
 
 json Port::dumps()
 {
     json config;
-    config["node_id"] = this->node_id;
+    config["index"] = this->index;
     config["name"] = this->name;
     config["type"] = this->type;
     config["data_type"] = this->data_type;
@@ -164,14 +163,13 @@ void Port::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 // ================================StringPort====================================
 StringPort::StringPort(const std::string &node_id, uint index,
                        const std::string &name, Type type, QColor color)
-    : Port(node_id, index, name, type, Port::String, color)
+    : Port(node_id, index, name, type, color)
 {
+    this->data_type = Port::String;
     if (this->is_pair())
     {
         return;
     }
-    std::cout << "string build" << std::endl;
-
     this->setting_layout = new QHBoxLayout();
     this->m_edit = new QLineEdit();
     auto label = new QLabel(QString::fromStdString(this->name));
@@ -182,10 +180,7 @@ StringPort::StringPort(const std::string &node_id, uint index,
 }
 void StringPort::loads(json config)
 {
-    if (config.contains("value"))
-    {
-        this->set_value<std::string>(config["value"]);
-    }
+    this->set_value<std::string>(config["value"]);
 }
 json StringPort::dumps()
 {
@@ -196,16 +191,15 @@ json StringPort::dumps()
 
 void StringPort::apply_ui(QVariant *data)
 {
-    if (data == nullptr || this->is_pair() || m_data == nullptr)
+    if (data == nullptr || this->m_edit == nullptr)
     {
         return;
     }
-    std::cout << "test" << this->m_edit << std::endl;
-    this->m_edit->setText("test");
+    this->m_edit->setText(data->toString());
 }
 void StringPort::apply_backend()
 {
-    if (this->is_pair())
+    if (this->m_edit == nullptr)
     {
         return;
     }
@@ -234,14 +228,11 @@ IntPort::IntPort(const std::string &node_id, uint index,
 }
 void IntPort::loads(json config)
 {
-    if (config.contains("value"))
-    {
-        this->set_value<int>(config["value"]);
-    }
+    this->set_value<int>(config["value"]);
 }
 void IntPort::apply_backend()
 {
-    if (this->is_pair())
+    if (this->m_edit == nullptr)
     {
         return;
     }
@@ -269,14 +260,11 @@ FloatPort::FloatPort(const std::string &node_id, uint index,
 void FloatPort::loads(json config)
 {
     this->data_type = Port::Float;
-    if (config.contains("value"))
-    {
-        this->set_value<int>(config["value"]);
-    }
+    this->set_value<float>(config["value"]);
 }
 void FloatPort::apply_backend()
 {
-    if (this->is_pair())
+    if (this->m_edit == nullptr)
     {
         return;
     }
@@ -293,8 +281,9 @@ json FloatPort::dumps()
 // ================================BoolPort====================================
 BoolPort::BoolPort(const std::string &node_id, uint index,
                    const std::string &name, Type type, QColor color)
-    : Port(node_id, index, name, type, Port::Bool, color)
+    : Port(node_id, index, name, type, color)
 {
+    this->data_type = Port::Bool;
     if (this->is_pair())
     {
         return;
@@ -309,10 +298,7 @@ BoolPort::BoolPort(const std::string &node_id, uint index,
 }
 void BoolPort::loads(json config)
 {
-    if (config.contains("value"))
-    {
-        this->set_value<std::string>(config["value"]);
-    }
+    this->set_value<std::string>(config["value"]);
 }
 json BoolPort::dumps()
 {
@@ -323,7 +309,7 @@ json BoolPort::dumps()
 
 void BoolPort::apply_ui(QVariant *data)
 {
-    if (data == nullptr || this->is_pair() || m_data == nullptr)
+    if (data == nullptr || this->m_check == nullptr)
     {
         return;
     }
@@ -344,8 +330,9 @@ EnumPort::EnumPort(const std::string &node_id,
                    Type type,
                    std::vector<std::string> items,
                    QColor color)
-    : Port(node_id, index, name, type, Port::Enum, color), m_combo_items(items)
+    : Port(node_id, index, name, type, color), m_combo_items(items)
 {
+    this->data_type = Port::Enum;
     if (this->is_pair())
     {
         return;
@@ -361,16 +348,20 @@ EnumPort::EnumPort(const std::string &node_id,
     if (this->m_combo_items.size() > 0)
     {
         this->m_combo->setCurrentIndex(0);
+        this->set_value(this->m_combo_items[0]);
     }
 
     this->setting_layout->addWidget(label);
     this->setting_layout->addWidget(this->m_combo);
 }
+
 void EnumPort::loads(json config)
 {
-    if (config.contains("value"))
+    std::string value = config["value"];
+    auto it = std::find(this->m_combo_items.begin(), this->m_combo_items.end(), value);
+    if (it != this->m_combo_items.end())
     {
-        this->set_value<std::string>(config["value"]);
+        this->set_value(value);
     }
 }
 json EnumPort::dumps()
@@ -382,35 +373,38 @@ json EnumPort::dumps()
 
 void EnumPort::apply_ui(QVariant *data)
 {
-    if (data == nullptr || this->is_pair() || m_data == nullptr)
+    std::cout << "apply EnumPort backend: " << this->m_combo->currentText().toStdString() << std::endl;
+    if (data == nullptr || this->m_combo == nullptr)
     {
         return;
     }
-    auto it = std::find(this->m_combo_items.begin(), this->m_combo_items.end(), this->get_value<std::string>());
+    auto value = data->value<std::string>();
+    auto it = std::find(this->m_combo_items.begin(), this->m_combo_items.end(), value);
     if (it != this->m_combo_items.end())
     {
-        this->m_combo->setCurrentText(data->toString());
+        this->m_combo->setCurrentText(QString::fromStdString(value));
     }
 }
 void EnumPort::apply_backend()
 {
-    if (this->is_pair())
+    if (this->m_combo == nullptr)
     {
         return;
     }
-    this->set_value(this->m_combo->currentText());
+    std::cout << this->m_combo->currentText().toStdString() << std::endl;
+    this->set_value(this->m_combo->currentText().toStdString());
 }
 
 // ================================ImagePort====================================
 ImagePort::ImagePort(const std::string &node_id, uint index,
                      const std::string &name, Type type, QColor color)
-    : Port(node_id, index, name, type, Port::Image, color)
+    : Port(node_id, index, name, type, color)
 {
+    this->data_type = Port::Image;
     if (this->is_pair())
     {
         return;
     }
-    std::cout << "ImagePort build" << std::endl;
     this->setting_layout = new QHBoxLayout();
     this->m_im_label = new QLabel();
     auto label = new QLabel(QString::fromStdString(this->name));
@@ -418,17 +412,10 @@ ImagePort::ImagePort(const std::string &node_id, uint index,
     this->setting_layout->addWidget(label);
     this->setting_layout->addWidget(this->m_im_label);
 }
-void ImagePort::loads(json config)
-{
-    if (config.contains("value"))
-    {
-        this->set_value<std::string>(config["value"]);
-    }
-}
 
 void ImagePort::apply_ui(QVariant *data)
 {
-    if (data == nullptr || this->is_pair() || m_data == nullptr)
+    if (data == nullptr || this->m_im_label == nullptr)
     {
         return;
     }

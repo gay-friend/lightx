@@ -45,9 +45,8 @@ public:
 
     Port(const std::string &node_id, uint index,
          const std::string &name, Type type,
-         DataType data_type,
          QColor color);
-    void loads(json config);
+    virtual void loads(json config);
     virtual json dumps();
     virtual void apply_ui(QVariant *data) = 0;
     virtual void apply_backend() = 0;
@@ -65,7 +64,7 @@ public:
         if (m_parent == nullptr)
         {
             m_data->setValue(QVariant::fromValue(value));
-            this->apply_ui(m_data);
+            // this->apply_ui(m_data);
             emit on_value_change(m_data);
         }
         else
@@ -83,12 +82,12 @@ public:
     void remove_child(Port *port);
     QLayout *setting_layout{nullptr};
 
-    std::string node_id;
-    uint index;
-    std::string uuid;
-    std::string name;
-    Type type;
-    DataType data_type;
+    std::string node_id{""};
+    uint index{0};
+    std::string uuid{""};
+    std::string name{"Node"};
+    Type type{Port::Input};
+    DataType data_type{Port::String};
     QColor color{"#ffffff"};
     bool is_connected{false};
     int icon_size{15};
@@ -113,7 +112,7 @@ public:
     void loads(json config);
     virtual json dumps() override;
     virtual void apply_ui(QVariant *data);
-    virtual void apply_backend();
+    virtual void apply_backend() override;
 
 protected:
     QLineEdit *m_edit{nullptr};
@@ -122,41 +121,32 @@ class FilePort : public StringPort
 {
 public:
     FilePort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#b92ee6");
-
-protected:
-    QLineEdit *m_edit{nullptr};
 };
 class IntPort : public StringPort
 {
 public:
     IntPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#008000");
-    void loads(json config);
+    void loads(json config) override;
     virtual void apply_backend() override;
     virtual json dumps() override;
-
-protected:
-    QLineEdit *m_edit{nullptr};
 };
 class FloatPort : public StringPort
 {
 public:
     FloatPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#2fFF09");
-    void loads(json config);
+    void loads(json config) override;
     virtual void apply_backend() override;
     virtual json dumps() override;
-
-protected:
-    QLineEdit *m_edit{nullptr};
 };
 
 class BoolPort : public Port
 {
 public:
     BoolPort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#ff0606");
-    void loads(json config);
+    void loads(json config) override;
     virtual json dumps() override;
     virtual void apply_ui(QVariant *data);
-    virtual void apply_backend();
+    virtual void apply_backend() override;
 
 protected:
     QCheckBox *m_check{nullptr};
@@ -170,10 +160,10 @@ public:
              Type type,
              std::vector<std::string> items,
              QColor color = "#a92ee6");
-    void loads(json config);
+    void loads(json config) override;
     virtual json dumps() override;
     virtual void apply_ui(QVariant *data);
-    virtual void apply_backend();
+    virtual void apply_backend() override;
 
 protected:
     std::vector<std::string> m_combo_items;
@@ -184,9 +174,8 @@ class ImagePort : public Port
 {
 public:
     ImagePort(const std::string &node_id, uint index, const std::string &name, Type type = Input, QColor color = "#00BFFF");
-    void loads(json config);
     virtual void apply_ui(QVariant *data);
-    virtual void apply_backend();
+    virtual void apply_backend() override;
 
 protected:
     QLabel *m_im_label{nullptr};
