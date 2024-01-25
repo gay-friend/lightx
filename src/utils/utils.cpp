@@ -1,27 +1,7 @@
 #include "utils/utils.h"
 namespace fs = std::filesystem;
 
-func_create_node *load_lib(const char *file, const char *func_name, void **handle, NodeInfo *info)
-{
-#if __WIN32__
-    handle * = LoadLibrary(file);
-#else
-
-    // 加载动态库
-    *handle = dlopen(file, RTLD_LAZY);
-    // 获取函数指针
-    auto func_p = new func_create_node;
-    auto func_get_name_p = new func_get_lib_name;
-    *func_get_name_p = (func_get_lib_name)dlsym(*handle, "get_node_info");
-    *info = (*func_get_name_p)();
-    delete func_get_name_p;
-
-    *func_p = (func_create_node)dlsym(*handle, func_name);
-    return func_p;
-#endif
-}
-
-LibManager::LibManager(const std::string &dir, const std::string func_name) : m_dir(dir), m_func_name(func_name)
+LibManager::LibManager(const std::string &dir) : m_dir(dir)
 {
     load();
 }
@@ -42,23 +22,26 @@ void LibManager::load()
     }
     for (auto it : fs::directory_iterator(m_dir))
     {
-        auto file = it.path().c_str();
-        void **handle = new (void *);
+        auto file = it.path().string();
         std::cout << "Loading " << file << std::endl;
-        auto info = new NodeInfo;
-        auto func = load_lib(file, "create_node", handle, info);
-        names.push_back(info->name);
-        std::cout << "Load " << file << " successed. name as: " << info->name << std::endl;
+        QLibrary lib(QString::fromStdString(file));
+        lib.load();
+        if (!lib.isLoaded())
+        {
+            qDebug() << lib.errorString();
+            continue;
+        }
+        auto node_name = ((func_get_node_name)lib.resolve(NAME_OF_GET_NODE_NAME))();
+        auto node_type = ((func_get_node_type)lib.resolve(NAME_OF_GET_NODE_TYPE))();
+        auto func_create_node_p = (func_create_node)lib.resolve(NAME_OF_CREATE_NODE);
+        std::cout << "Add node " << node_type << ": " << node_name << std::endl;
 
-        m_handle_map[info->name] = handle;
-        func_map[get_node_type_name(info->type)][info->name] = func;
+        func_map[node_type][node_name] = func_create_node_p;
     }
 }
 void LibManager::unload()
 {
     func_map.clear();
-    m_handle_map.clear();
-    names.clear();
 }
 Node *LibManager::create_node(const std::string &node_type, const std::string &node_name)
 {
@@ -66,10 +49,5 @@ Node *LibManager::create_node(const std::string &node_type, const std::string &n
     {
         return nullptr;
     }
-    auto func = func_map[node_type][node_name];
-    if (func == nullptr)
-    {
-        return nullptr;
-    }
-    return (*func)();
+    return func_map[node_type][node_name](nullptr);
 }

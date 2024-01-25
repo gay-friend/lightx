@@ -13,6 +13,14 @@ BezierCurveItem::BezierCurveItem(const QPointF &start_point, const QPointF &end_
     m_shadow->setOffset(0, 0);
     m_shadow->setBlurRadius(20);
 }
+BezierCurveItem ::~BezierCurveItem()
+{
+    if (m_shadow != nullptr)
+    {
+        delete m_shadow;
+        m_shadow = nullptr;
+    }
+}
 
 void BezierCurveItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {

@@ -5,7 +5,7 @@
 #include <QAction>
 #include <iostream>
 
-#include "model/node_manager.h"
+#include "model/main_thread.h"
 #include "widgets/bezier_curve_item.h"
 #include "widgets/scene.h"
 #include "widgets/tree_widget.h"
@@ -13,10 +13,18 @@
 /// @brief 画布
 class GraphicsView : public QGraphicsView
 {
+    Q_OBJECT
+signals:
+    void on_select(NodeWidget *w);
+public slots:
+    void update_selected_node();
+    void add_node(NodeWidget *node_widget);
+    void add_line(BezierCurveItem *line);
+
 public:
     /// @brief 构造函数
     /// @param parent 父窗体
-    GraphicsView(QWidget *parent = nullptr);
+    GraphicsView(QWidget *parent, NodeManager *manager);
     /// @brief 鼠标滚轮事件
     /// @param event 事件源
     void wheelEvent(QWheelEvent *event) override;
@@ -42,8 +50,10 @@ public:
     /// @param event 事件源
     void contextMenuEvent(QContextMenuEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
+    Port *get_port(QPoint pos);
+    NodeWidget *get_node(QPoint pos);
     /// @brief 节点管理器
-    NodeManager node_manager{this};
+    NodeManager *main_thread{nullptr};
 
 private:
     /// @brief 拖动中？
@@ -58,10 +68,9 @@ private:
     QPoint m_mouse_current_pos;
     /// @brief 鼠标点击位置
     QPoint m_mouse_clike_pos;
-    /// @brief  鼠标释放位置
-    QPoint m_mouse_release_pos;
     /// @brief 缩放
-    float m_zoom_factor{1.05}; // 缩放
+    float m_zoom_factor{1.05f}; // 缩放
     float m_view_scale{1.0};
     float m_last_scale{0.0};
+    Scene *m_scene;
 };

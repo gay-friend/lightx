@@ -2,7 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <QImage>
 
-cv::Mat qimage_to_mat(const QImage &qimage)
+inline cv::Mat qimage_to_mat(const QImage &qimage)
 {
     int format = CV_8UC3;
     switch (qimage.format())
@@ -27,7 +27,7 @@ cv::Mat qimage_to_mat(const QImage &qimage)
     return cv::Mat(qimage.height(), qimage.width(), format, const_cast<uchar *>(qimage.bits()), qimage.bytesPerLine());
 }
 
-QImage mat_to_qimage(const cv::Mat &mat, bool convert_to_rgb = false)
+inline QImage mat_to_qimage(const cv::Mat &mat, bool convert_to_rgb = false)
 {
     auto format = QImage::Format_RGB888;
     switch (mat.type())

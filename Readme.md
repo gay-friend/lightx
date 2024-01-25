@@ -29,3 +29,9 @@ https://github.com/ganleiboy/CMakeTutorial
 5. ROI
 6. 深度学习推理工具集成
 7. 工具初始化和连续运行模式
+```
+QObject::connect(node, &NodeWidget::on_change, [this, node]()
+                    { update_all_node(); });
+```
+linux编译opencv
+`cmake .. -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D BUILD_opencv_world=ON`

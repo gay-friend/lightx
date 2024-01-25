@@ -11,19 +11,20 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     move(center_x, center_y);
 
     // 编辑器设置，位置在中间，占比例至少80 %
-    m_editor = new GraphicsView(this);
-
+    auto manager = new NodeManager();
+    m_editor = new GraphicsView(this, manager);
+    manager->load_workspace("workspace.json");
+    QObject::connect(m_editor, &GraphicsView::on_select, this, &EditorWindow::on_node_select);
     // 初始化菜单栏
 
-    // 初始化右侧边栏
+    // 初始化侧边栏
     m_left_sidebar = new QWidget(this);
     m_left_layout = new QVBoxLayout(m_left_sidebar);
     m_left_layout->setContentsMargins(0, 0, 0, 0);
     auto left_bar = new SidebarWidget(nullptr, "", false);
     auto model_tree = new NodeListWidget(this, true);
-    model_tree->build_tree(m_editor->node_manager.lib_manager->func_map);
-    left_bar->add_comp("模块库", model_tree, false, 10);
-
+    model_tree->build_tree(m_editor->main_thread->lib_manager->func_map);
+    left_bar->add_comp("模块库", model_tree, false, true);
     m_left_layout->addWidget(left_bar);
 
     // 设置布局的初始大小
@@ -32,9 +33,14 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
     m_center_splitter->addWidget(m_editor);
     m_center_splitter->setSizes({800, 200});
 
+    m_right_dock = new QDockWidget();
+    // 禁用关闭按钮
+    m_right_dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+
     m_splitter = new QSplitter(Qt::Horizontal, this);
     m_splitter->addWidget(m_left_sidebar);
     m_splitter->addWidget(m_center_splitter);
+    m_splitter->addWidget(m_right_dock);
     m_splitter->setSizes({250, 1500, 250});
     setCentralWidget(m_splitter);
 
@@ -54,5 +60,24 @@ EditorWindow::EditorWindow(QWidget *parent) : QMainWindow(parent)
 
 void EditorWindow::on_action_run()
 {
-    m_editor->node_manager.run();
+    m_editor->main_thread->start();
+}
+
+void EditorWindow::on_node_select(NodeWidget *w)
+{
+    if (w->node->uuid == this->m_selected_node_id)
+    {
+        return;
+    }
+    m_right_dock->setWidget(w->node);
+}
+
+int run_ui(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    app.setApplicationName("LightX");
+    app.setApplicationDisplayName("LightX");
+    auto window = EditorWindow();
+    window.show();
+    return app.exec();
 }
